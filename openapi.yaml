@@ -68,4 +68,4 @@ components:
     APIKey:
       name: API Key
       type: apiKey
-      in: query
+      in: header
