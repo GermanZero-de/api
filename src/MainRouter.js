@@ -1,9 +1,10 @@
+const path = require('path')
 const express = require('express')
 const swaggerUi = require('swagger-ui-express')
 const YAML = require('yamljs')
 
 const router = express.Router()
-const oas3Document = YAML.load('./openapi.yaml')
+const oas3Document = YAML.load(path.resolve(__dirname, '..', 'openapi.yaml'))
 
 router.use('/api-ui', swaggerUi.serve, swaggerUi.setup(oas3Document))
 router.get('/', (req, res) => res.redirect('api-ui'))
