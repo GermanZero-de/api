@@ -1,0 +1,71 @@
+openapi: 3.0.0
+info:
+  title: germanzero
+  version: '1.0'
+  license:
+    name: MIT
+  description: An API to access GermanZero
+servers:
+  - url: 'http://localhost:3000'
+  - url: 'https://api.gz.dilab.co'
+    description: ''
+paths:
+  /members:
+    post:
+      summary: ''
+      responses:
+        '201':
+          description: Created
+        '409':
+          description: Conflict
+      description: Create a new GermanZero member
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/member'
+                - type: object
+                  properties:
+                    password:
+                      type: string
+                      description: Initial password
+            examples:
+              example:
+                value:
+                  firstName: John
+                  lastName: Doe
+                  email: johndoe@example.com
+                  password: my-great-secret
+components:
+  schemas:
+    member:
+      title: member
+      type: object
+      description: Representation of a GermanZero member record
+      properties:
+        id:
+          type: string
+          description: Automatic generated identifier for member
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+      required:
+        - firstName
+        - lastName
+        - email
+      x-examples:
+        example:
+          value:
+            firstName: John
+            lastName: Doe
+            email: johndoe@example.com
+  securitySchemes:
+    APIKey:
+      name: API Key
+      type: apiKey
+      in: query
