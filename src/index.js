@@ -1,3 +1,4 @@
+require('dotenv').config()
 const Logger = require('./Logger')
 const Server = require('./Server')
 const fetch = require('node-fetch')

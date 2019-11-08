@@ -6,12 +6,12 @@ const should = require('should')
 const jsonContentType = 'application/json'
 
 function okResult(data) {
-  return {ok: true, status: 200, headers: {'content-type': jsonContentType}, json: () => ({status: 'success', data})}
+  return {ok: true, status: 200, headers: {'content-type': jsonContentType}, json: () => data}
 }
 
 const expectedFetchResults = {
-  'POST https://rocket.chat/api/v1/users.create': okResult({}),
-  'POST https://rocket.chat/api/v1/login': okResult({}),
+  'POST https://rocket.chat/api/v1/users.create': okResult({success: true}),
+  'POST https://rocket.chat/api/v1/login': okResult({status: 'success', data: {}}),
   'POST https://rocket.chat/api/v1/logout': okResult({}),
 }
 

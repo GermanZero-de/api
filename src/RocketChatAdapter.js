@@ -9,16 +9,16 @@ module.exports = (fetch, config) => {
     if (!result.ok) {
       throw Error(`Cannot access Rocket.Chat on ${config.rocketChat.url}`)
     }
-    const data = result.json()
-    if (!data.status || data.status !== 'success') {
-      throw Error('Rocket.Chat returned an error')
-    }
-    return data.data
+    return result.json()
   }
 
   return {
     async loginAsAdmin() {
-      const {userId, authToken} = await fetchFromRC('/api/v1/login', 'POST', {user: config.rocketChat.adminUsername, password: config.rocketChat.adminPwd})
+      const result = await fetchFromRC('/api/v1/login', 'POST', {user: config.rocketChat.adminUsername, password: config.rocketChat.adminPwd})
+      if (!result.status || result.status !== 'success') {
+        throw Error('Rocket.Chat returned an error')
+      }
+      const {userId, authToken} = result.data
       return {userId, authToken}
     },
 
@@ -27,7 +27,11 @@ module.exports = (fetch, config) => {
     },
 
     async createUser(auth, data) {
-      return fetchFromRC('/api/v1/users.create', 'POST', data, auth)
+      const result = await fetchFromRC('/api/v1/users.create', 'POST', data, auth)
+      if (!result.success) {
+        throw Error('Rocket.Chat returned an error')
+      }  
+      return result.user
     }
   }
 }
