@@ -1,5 +1,6 @@
 const {MESSAGE} = require('triple-beam')
 const winston = require('winston')
+const expressWinston = require('express-winston')
 
 const loggerOptions = {
   level: process.env.LOGLEVEL || 'info',
@@ -25,11 +26,12 @@ module.exports = {
     return winston.createLogger(loggerOptions)
   },
 
-  attachToExpress(app, mainRouter) {
-    const expressWinston = require('express-winston')
+  logExpressRequests(app) {
     const msg = `{{req.method}} {{req.url}} {{res.responseTime}}ms {{res.statusCode}} - {{req.headers['user-agent']}}`
     app.use(expressWinston.logger({...loggerOptions, msg}))
-    app.use('/', mainRouter)
+  },
+
+  logExpressErrors(app) {
     app.use(expressWinston.errorLogger({...loggerOptions, meta: true}))
   }
 }
