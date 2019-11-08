@@ -1,11 +1,11 @@
 const express = require('express')
-const mainRouter = require('./MainRouter')
 const bodyParser = require('body-parser')
 
-module.exports = (isProduction, Logger) => {
+module.exports = (Logger, fetch, config) => {
+  const mainRouter = require('./MainRouter')(fetch, config)
   const app = express()
 
-  if (!isProduction) {
+  if (!config.isProduction) {
     app.set('json spaces', 2)
   }
   app.use(bodyParser.urlencoded({extended: false}))
