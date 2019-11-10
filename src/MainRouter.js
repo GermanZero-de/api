@@ -5,6 +5,7 @@ const YAML = require('yamljs')
 
 module.exports = (fetch, config) => {
   const RocketChatAdapter = require('./RocketChatAdapter')(fetch, config)
+  const WekanAdapter = require('./WekanAdapter')(fetch, config)
 
   function nocache(req, res, next) {
     res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate')
@@ -34,6 +35,15 @@ module.exports = (fetch, config) => {
       password: data.password
     })
     await RocketChatAdapter.logout(auth)
+
+    const wekanAuth = await WekanAdapter.loginAsAdmin()
+    await WekanAdapter.createUser(wekanAuth, {
+      username: data.firstName + '.' + data.lastName,
+      email: data.email,
+      password: data.password
+    })
+    await WekanAdapter.logout(wekanAuth)
+
     return {httpStatus: 201}
   }
 

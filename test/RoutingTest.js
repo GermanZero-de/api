@@ -13,6 +13,8 @@ const expectedFetchResults = {
   'POST https://rocket.chat/api/v1/users.create': okResult({success: true}),
   'POST https://rocket.chat/api/v1/login': okResult({status: 'success', data: {}}),
   'POST https://rocket.chat/api/v1/logout': okResult({}),
+  'POST https://wekan/users/login': okResult({}),
+  'POST https://wekan/api/users': okResult({})
 }
 
 const fetchLog = []
@@ -26,6 +28,10 @@ const config = {
   rocketChat: {
     url: 'https://rocket.chat',
     adminPwd: 'rc-admin-pwd'
+  },
+  wekan: {
+    url: 'https://wekan',
+    adminPwd: 'wekan-admin_pwd'
   },
   isProduction: false,
   nodeenv: 'test'
@@ -41,7 +47,7 @@ describe('GET /', () => {
 })
 
 describe('POST /members', () => {
-  before(() => fetchLog.length = 0)
+  beforeEach(() => fetchLog.length = 0)
 
   const testUser = {
     firstName: 'John',
@@ -54,12 +60,28 @@ describe('POST /members', () => {
     await request(app).post('/members')
       .set('cotent-type', 'application/json')
       .send(testUser)
-    fetchLog.length.should.equal(3)
-    fetchLog[0].url.should.equal('https://rocket.chat/api/v1/login')
-    fetchLog[1].url.should.equal('https://rocket.chat/api/v1/users.create')
-    fetchLog[1].options.method.should.equal('POST')
-    const body = JSON.parse(fetchLog[1].options.body)
+    const index = fetchLog.findIndex(entry => entry.url.match(/^https:\/\/rocket.chat\//))
+    fetchLog[index].url.should.equal('https://rocket.chat/api/v1/login')
+    fetchLog[index].options.method.should.equal('POST')
+    fetchLog[index + 1].url.should.equal('https://rocket.chat/api/v1/users.create')
+    fetchLog[index + 1].options.method.should.equal('POST')
+    const body = JSON.parse(fetchLog[index + 1].options.body)
     body.name.should.equal(`${testUser.firstName} ${testUser.lastName}`)
+    body.email.should.equal(testUser.email)
+    body.password.should.equal(testUser.password)
+  })
+
+  it('should create a user in Wekan', async () => {
+    await request(app).post('/members')
+      .set('cotent-type', 'application/json')
+      .send(testUser)
+    const index = fetchLog.findIndex(entry => entry.url.match(/^https:\/\/wekan\//))
+    fetchLog[index].url.should.equal('https://wekan/users/login')
+    fetchLog[index].options.method.should.equal('POST')
+    fetchLog[index + 1].url.should.equal('https://wekan/api/users')
+    fetchLog[index + 1].options.method.should.equal('POST')
+    const body = JSON.parse(fetchLog[index + 1].options.body)
+    body.username.should.equal(`${testUser.firstName}.${testUser.lastName}`)
     body.email.should.equal(testUser.email)
     body.password.should.equal(testUser.password)
   })
