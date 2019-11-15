@@ -4,8 +4,9 @@ const swaggerUi = require('swagger-ui-express')
 const YAML = require('yamljs')
 
 module.exports = (fetch, config) => {
-  const RocketChatAdapter = require('./RocketChatAdapter')(fetch, config)
-  const WekanAdapter = require('./WekanAdapter')(fetch, config)
+  const RocketChatAdapter = require('./adapters/RocketChatAdapter')(fetch, config)
+  const WekanAdapter = require('./adapters/WekanAdapter')(fetch, config)
+  const CiviCRMAdapter = require('./adapters/CiviCRMAdapter')(fetch, config)
 
   function nocache(req, res, next) {
     res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate')
@@ -27,6 +28,7 @@ module.exports = (fetch, config) => {
   }
 
   async function createMember(data) {
+    await CiviCRMAdapter.createContact(data)
     const auth = await RocketChatAdapter.loginAsAdmin()
     await RocketChatAdapter.createUser(auth, {
       name: data.firstName + ' ' + data.lastName,
