@@ -17,7 +17,7 @@ module.exports = (fetch, config) => {
       return fetchFromWekan('/users/login', 'POST', {username: config.wekan.adminUsername, password: config.wekan.adminPwd})
     },
 
-    async logout(auth) {
+    async logout() {
       // There seems to be no logout API route in Wekan...?
       return null
     },
