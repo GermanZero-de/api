@@ -15,7 +15,7 @@ const expectedFetchResults = {
   'POST https://rocket.chat/api/v1/logout': okResult({}),
   'POST https://wekan/users/login': okResult({}),
   'POST https://wekan/api/users': okResult({}),
-  'POST https://civicrm/sites/all/modules/civicrm/extern/rest.php?key=site-key&api_key=api-key&json=%7B%22contact_type%22%3A%22Individual%22%2C%22firstName%22%3A%22John%22%2C%22lastName%22%3A%22Doe%22%2C%22email%22%3A%22johndoe%40example.com%22%2C%22password%22%3A%22my-great-secret%22%7D&entity=contact&action=create': okResult({})
+  'POST https://civicrm/sites/all/modules/civicrm/extern/rest.php?key=site-key&api_key=api-key&json=%7B%22contact_type%22%3A%22Individual%22%2C%22firstName%22%3A%22John%22%2C%22lastName%22%3A%22Doe%22%2C%22email%22%3A%22johndoe%40example.com%22%7D&entity=contact&action=create': okResult({})
 }
 
 const fetchLog = []
@@ -52,6 +52,25 @@ describe('GET /', () => {
   })
 })
 
+describe('POST /contacts', () => {
+  beforeEach(() => fetchLog.length = 0)
+
+  const testUser = {
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'johndoe@example.com'
+  }
+
+  it('should create a contact in the CRM', async () => {
+    await request(app).post('/contacts')
+      .set('cotent-type', 'application/json')
+      .send(testUser)
+    const index = fetchLog.findIndex(entry => entry.url.match(/^https:\/\/civicrm\//))
+    fetchLog[index].url.should.startWith('https://civicrm/sites/all/modules/civicrm/extern/rest.php')
+    fetchLog[index].options.method.should.equal('POST')
+  })
+})
+
 describe('POST /members', () => {
   beforeEach(() => fetchLog.length = 0)
 
@@ -61,15 +80,6 @@ describe('POST /members', () => {
     email: 'johndoe@example.com',
     password: 'my-great-secret'
   }
-
-  it('should create a contact in the CRM', async () => {
-    await request(app).post('/members')
-      .set('cotent-type', 'application/json')
-      .send(testUser)
-    const index = fetchLog.findIndex(entry => entry.url.match(/^https:\/\/civicrm\//))
-    fetchLog[index].url.should.startWith('https://civicrm/sites/all/modules/civicrm/extern/rest.php')
-    fetchLog[index].options.method.should.equal('POST')
-  })
 
   it('should create a user in Rocket.Chat', async () => {
     await request(app).post('/members')

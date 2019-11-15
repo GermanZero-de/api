@@ -27,8 +27,12 @@ module.exports = (fetch, config) => {
     }
   }
 
-  async function createMember(data) {
+  async function createContact(data) {
     await CiviCRMAdapter.createContact(data)
+    return {httpStatus: 201}
+  }
+
+  async function createMember(data) {
     const auth = await RocketChatAdapter.loginAsAdmin()
     await RocketChatAdapter.createUser(auth, {
       name: data.firstName + ' ' + data.lastName,
@@ -54,6 +58,7 @@ module.exports = (fetch, config) => {
 
   router.use('/api-ui', swaggerUi.serve, swaggerUi.setup(oas3Document))
   router.get('/', (req, res) => res.redirect('api-ui'))
+  router.post('/contacts', nocache, jsonHandlerFor(req => createContact(req.body)))
   router.post('/members', nocache, jsonHandlerFor(req => createMember(req.body)))
 
   return router

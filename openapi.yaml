@@ -7,9 +7,30 @@ info:
   description: An API to access GermanZero
 servers:
   - url: 'http://localhost:3000'
+    description: 'Local development'
   - url: 'https://api.gz.dilab.co'
-    description: ''
+    description: 'Live server'
 paths:
+  /contacts:
+    post:
+      summary: 'Create a new contact'
+      responses:
+        '201':
+          description: Created
+        '409':
+          description: Conflict
+      description: Create a new GermanZero contact
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/member'
+            examples:
+              example:
+                value:
+                  firstName: John
+                  lastName: Doe
+                  email: johndoe@example.com
   /members:
     post:
       summary: ''
