@@ -22,26 +22,30 @@ module.exports = (fetch, config) => {
       console.error(result.status + ' ' + result.statusText)
       throw Error(`Cannot access CiviCRM on ${crmPath}`)
     }
-    return result.json()
+    const data = await result.json()
+    if (data.is_error) {
+      console.error(data)
+      throw Error('CiviCRM returned an error')
+    }
+    return data
   }
 
   return {
-    async loginAsAdmin() {
-      // CiviCRM doesn't have a login/logout functionality in their API
-      return null
-    },
-
-    async logout() {
-      // CiviCRM doesn't have a login/logout functionality in their API
-    },
-
     async createContact(data) {
       const result = await fetchFromCRM('/contact', 'POST', {json: JSON.stringify({contact_type: 'Individual', ...data})})
-      if (result.is_error) {
-        console.error(result)
-        throw Error('CiviCRM returned an error')
-      }  
       return result.values
+    },
+
+    async updateContact(id, change) {
+      return fetchFromCRM('/contact', 'PUT', {id, json: change})
+    },
+
+    async getContactByEMail(email) {
+      const result = await fetchFromCRM('/contact', 'GET', {email})
+      if (result.is_error || !result.values || Object.keys(result.values).length === 0) {
+        return undefined
+      }
+      return Object.values(result.values)[0]
     }
   }
 }

@@ -10,13 +10,14 @@ servers:
     description: 'Local development'
   - url: 'https://api.gz.dilab.co'
     description: 'Live server'
+    
 paths:
   /contacts:
     post:
-      summary: 'Create a new contact'
+      summary: 'Create a new contact in CRM'
       responses:
-        '201':
-          description: Created
+        '202':
+          description: Created but must be confirmed
         '409':
           description: Conflict
       description: Create a new GermanZero contact
@@ -31,6 +32,17 @@ paths:
                   firstName: John
                   lastName: Doe
                   email: johndoe@example.com
+
+  /contacts/:contactId/confirmations/:code:
+    get:
+      summary: 'Marks the email address of the contact as confirmed'
+      description: Contacts are firstly created opted out from mailings to comply with GDPR. A first email is sent then, containin a confirmation link which is this route.
+      responses:
+        '200':
+          description: Contact is confirmed
+        '400':
+          description: Invalid code
+
   /members:
     post:
       summary: ''
