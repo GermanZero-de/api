@@ -3,9 +3,9 @@ const express = require('express')
 const swaggerUi = require('swagger-ui-express')
 const YAML = require('yamljs')
 
-module.exports = (fetch, config) => {
+module.exports = (logger, fetch, config) => {
   const {CiviCRMAdapter, WekanAdapter, RocketChatAdapter} = require('./adapters')(fetch, config)
-  const MailSender = require('./MailSender')(config)
+  const MailSender = require('./MailSender')(logger, config)
   const {registerContact, confirmRegistration} = require('./controller/ContactController')(CiviCRMAdapter, MailSender, config)
 
   function nocache(req, res, next) {

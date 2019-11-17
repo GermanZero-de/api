@@ -21,10 +21,10 @@ const loggerOptions = {
   meta: false,
 }
 
+const logger = winston.createLogger(loggerOptions)
+
 module.exports = {
-  setupStandardLogger() {
-    return winston.createLogger(loggerOptions)
-  },
+  ...logger,
 
   logExpressRequests(app) {
     const msg = `{{req.method}} {{req.url}} {{res.responseTime}}ms {{res.statusCode}} - {{req.headers['user-agent']}}`

@@ -1,5 +1,6 @@
+/*eslint-env mocha*/
+
 const request = require('supertest')
-const logger = require('../src/Logger')
 const Server = require('../src/Server')
 const should = require('should')
 
@@ -9,8 +10,9 @@ function okResult(data) {
   return {ok: true, status: 200, headers: {'content-type': jsonContentType}, json: () => data}
 }
 
+const crmUrl = 'https://civicrm/sites/all/modules/civicrm/extern/rest.php'
 function crmCmd(paramStr) {
-  return 'POST https://civicrm/sites/all/modules/civicrm/extern/rest.php?key=site-key&api_key=api-key&' + paramStr
+  return `POST ${crmUrl}?key=site-key&api_key=api-key&${paramStr}`
 }
 
 const expectedFetchResults = {
@@ -23,9 +25,24 @@ const expectedFetchResults = {
   [crmCmd('json=1&entity=contact&action=get&email=johndoe%40example.com')]: okResult({values: {}})
 }
 
-const fetchLog = []
+const log = []
+const addToLog = (msg) => log.push({type: 'log', msg})
+const logger = {
+  info(msg) {addToLog('INFO: ' + msg)},
+  warn(msg) {addToLog('WARN: ' + msg)},
+  error(msg) {addToLog('ERROR: ' + msg)},
+  debug(msg) {addToLog('DEBUG: ' + msg)},
+  logExpressRequests: (app) => app.use((req, res, next) => {
+    log.push({type: 'express', msg: req.method + ' ' + req.path})
+    next()
+  }),
+  logExpressErrors: (app) => app.use((err, req, res, next) => {
+    log.push({type: 'express', msg: 'ERROR: ' + err.toString()})
+    next()
+  })
+}
 const fetch = async (url, options) => {
-  fetchLog.push({url, options})
+  log.push({type: 'fetch', url, options})
   const path = (options.method || 'GET').toUpperCase() + ' ' + url
   return expectedFetchResults[path] || { status: 404 }
 }
@@ -42,7 +59,7 @@ describe('GET /', () => {
 })
 
 describe('POST /contacts', () => {
-  beforeEach(() => fetchLog.length = 0)
+  beforeEach(() => log.length = 0)
 
   const testUser = {
     firstName: 'John',
@@ -54,14 +71,22 @@ describe('POST /contacts', () => {
     await request(app).post('/contacts')
       .set('cotent-type', 'application/json')
       .send(testUser)
-    const index = fetchLog.findIndex(entry => entry.url.match(/^https:\/\/civicrm\//))
-    fetchLog[index].url.should.startWith('https://civicrm/sites/all/modules/civicrm/extern/rest.php')
-    fetchLog[index].options.method.should.equal('POST')
+    const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/civicrm\//))
+    log[index].url.should.startWith(crmUrl)
+    log[index].options.method.should.equal('POST')
   })
+
+  it('should send a confirmation email', async () => {
+    await request(app).post('/contacts')
+      .set('cotent-type', 'application/json')
+      .send(testUser)
+      const index = log.findIndex(entry => entry.type === 'log' && entry.msg === `DEBUG: Sending email from test@example.com to johndoe@example.com with subject 'GermanZero: Bestätigung'`)
+      index.should.be.greaterThanOrEqual(0)
+    })
 })
 
 describe('POST /members', () => {
-  beforeEach(() => fetchLog.length = 0)
+  beforeEach(() => log.length = 0)
 
   const testUser = {
     firstName: 'John',
@@ -74,12 +99,12 @@ describe('POST /members', () => {
     await request(app).post('/members')
       .set('cotent-type', 'application/json')
       .send(testUser)
-    const index = fetchLog.findIndex(entry => entry.url.match(/^https:\/\/rocket.chat\//))
-    fetchLog[index].url.should.equal('https://rocket.chat/api/v1/login')
-    fetchLog[index].options.method.should.equal('POST')
-    fetchLog[index + 1].url.should.equal('https://rocket.chat/api/v1/users.create')
-    fetchLog[index + 1].options.method.should.equal('POST')
-    const body = JSON.parse(fetchLog[index + 1].options.body)
+    const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/rocket.chat\//))
+    log[index].url.should.equal('https://rocket.chat/api/v1/login')
+    log[index].options.method.should.equal('POST')
+    log[index + 1].url.should.equal('https://rocket.chat/api/v1/users.create')
+    log[index + 1].options.method.should.equal('POST')
+    const body = JSON.parse(log[index + 1].options.body)
     body.name.should.equal(`${testUser.firstName} ${testUser.lastName}`)
     body.email.should.equal(testUser.email)
     body.password.should.equal(testUser.password)
@@ -89,12 +114,12 @@ describe('POST /members', () => {
     await request(app).post('/members')
       .set('cotent-type', 'application/json')
       .send(testUser)
-    const index = fetchLog.findIndex(entry => entry.url.match(/^https:\/\/wekan\//))
-    fetchLog[index].url.should.equal('https://wekan/users/login')
-    fetchLog[index].options.method.should.equal('POST')
-    fetchLog[index + 1].url.should.equal('https://wekan/api/users')
-    fetchLog[index + 1].options.method.should.equal('POST')
-    const body = JSON.parse(fetchLog[index + 1].options.body)
+    const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/wekan\//))
+    log[index].url.should.equal('https://wekan/users/login')
+    log[index].options.method.should.equal('POST')
+    log[index + 1].url.should.equal('https://wekan/api/users')
+    log[index + 1].options.method.should.equal('POST')
+    const body = JSON.parse(log[index + 1].options.body)
     body.username.should.equal(`${testUser.firstName}.${testUser.lastName}`)
     body.email.should.equal(testUser.email)
     body.password.should.equal(testUser.password)

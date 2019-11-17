@@ -1,8 +1,8 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 
-module.exports = (Logger, fetch, config) => {
-  const mainRouter = require('./MainRouter')(fetch, config)
+module.exports = (logger, fetch, config) => {
+  const mainRouter = require('./MainRouter')(logger, fetch, config)
   const app = express()
 
   if (!config.isProduction) {
@@ -10,9 +10,9 @@ module.exports = (Logger, fetch, config) => {
   }
   app.use(bodyParser.urlencoded({extended: false}))
   app.use(bodyParser.json())
-  Logger.logExpressRequests(app)
+  logger.logExpressRequests(app)
   app.use('/', mainRouter)
-  Logger.logExpressErrors(app)
+  logger.logExpressErrors(app)
 
   return app
 }

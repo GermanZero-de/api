@@ -6,7 +6,7 @@ const path = require('path')
 const mailTemplateDir = path.resolve(__dirname, 'mailTemplates')
 const partialsDir = path.join(mailTemplateDir, 'partials')
 
-module.exports = (config) => {
+module.exports = (logger, config) => {
   const transporter = nodemailer.createTransport({
     host: config.mail.smtpHost,
     port: config.mail.smtpPort,
@@ -25,14 +25,10 @@ module.exports = (config) => {
       const template = Handlebars.compile(fs.readFileSync(path.join(mailTemplateDir, templateName + '.html')).toString())
       const html = template({config, ...data})
       const to = config.mail.redirect || dest
-      return new Promise((resolve, reject) => {
-        if (!config.mail.preventSendingEMails) {
-          transporter.sendMail({from: config.mail.from, to, subject, html}, (err, info) => err ? reject(err) : resolve(info))
-        } else {
-          console.info(`Sending email from ${config.mail.from} to ${dest} with subject '${subject}'`)
-          resolve({})
-        }
-      })
+      logger.debug(`Sending email from ${config.mail.from} to ${dest} with subject '${subject}'`)
+      if (!config.mail.preventSendingEMails) {
+        return transporter.sendMail({from: config.mail.from, to, subject, html})
+      }
     }
   }
 }
