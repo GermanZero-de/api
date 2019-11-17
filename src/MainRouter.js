@@ -2,6 +2,7 @@ const path = require('path')
 const express = require('express')
 const swaggerUi = require('swagger-ui-express')
 const YAML = require('yamljs')
+const Redirection = require('./Redirection')
 
 module.exports = (logger, fetch, config) => {
   const {CiviCRMAdapter, WekanAdapter, RocketChatAdapter} = require('./adapters')(fetch, config)
@@ -21,8 +22,13 @@ module.exports = (logger, fetch, config) => {
         const result = await func(req)
         res.status(result.httpStatus || 200).json(result)
       } catch (error) {
-        res.status(error.status || 500).json(error)
-        next(error)
+        if (error instanceof Redirection) {
+          res.redirect(error.redirect)
+          next()
+        } else {
+          res.status(error.status || 500).json(error)
+          next(error)
+        }
       }
     }
   }

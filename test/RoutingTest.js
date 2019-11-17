@@ -11,8 +11,8 @@ function okResult(data) {
 }
 
 const crmUrl = 'https://civicrm/sites/all/modules/civicrm/extern/rest.php'
-function crmCmd(paramStr) {
-  return `POST ${crmUrl}?key=site-key&api_key=api-key&${paramStr}`
+function crmCmd(action, entity, json, additional) {
+  return `POST ${crmUrl}?key=site-key&api_key=api-key&json=${encodeURIComponent(JSON.stringify(json))}&entity=${entity}&action=${action}${additional ? '&' + additional : ''}`
 }
 
 const expectedFetchResults = {
@@ -21,8 +21,9 @@ const expectedFetchResults = {
   'POST https://rocket.chat/api/v1/logout': okResult({}),
   'POST https://wekan/users/login': okResult({}),
   'POST https://wekan/api/users': okResult({}),
-  [crmCmd('json=%7B%22contact_type%22%3A%22Individual%22%2C%22firstName%22%3A%22John%22%2C%22lastName%22%3A%22Doe%22%2C%22email%22%3A%22johndoe%40example.com%22%2C%22is_opt_out%22%3A%221%22%7D&entity=contact&action=create')]: okResult({values: {'4711': {id:'4711'}}}),
-  [crmCmd('json=1&entity=contact&action=get&email=johndoe%40example.com')]: okResult({values: {}})
+  [crmCmd('create', 'contact', {contact_type: 'Individual', firstName: 'John', lastName: 'Doe', email: 'johndoe@example.com', is_opt_out: '1'})]: okResult({values: {'4711': {id:'4711'}}}),
+  [crmCmd('get', 'contact', 1, 'email=johndoe%40example.com')]: okResult({values: {}}),
+  [crmCmd('update', 'contact', {is_opt_out: '0'}, 'id=4711')]: okResult({values: {}})
 }
 
 const log = []
@@ -32,19 +33,23 @@ const logger = {
   warn(msg) {addToLog('WARN: ' + msg)},
   error(msg) {addToLog('ERROR: ' + msg)},
   debug(msg) {addToLog('DEBUG: ' + msg)},
-  logExpressRequests: (app) => app.use((req, res, next) => {
-    log.push({type: 'express', msg: req.method + ' ' + req.path})
-    next()
-  }),
+  logExpressRequests: () => {},
   logExpressErrors: (app) => app.use((err, req, res, next) => {
     log.push({type: 'express', msg: 'ERROR: ' + err.toString()})
     next()
   })
 }
+
 const fetch = async (url, options) => {
   log.push({type: 'fetch', url, options})
   const path = (options.method || 'GET').toUpperCase() + ' ' + url
   return expectedFetchResults[path] || { status: 404 }
+}
+
+const testUser = {
+  firstName: 'John',
+  lastName: 'Doe',
+  email: 'johndoe@example.com'
 }
 
 const config = require('./testConfig')
@@ -61,18 +66,13 @@ describe('GET /', () => {
 describe('POST /contacts', () => {
   beforeEach(() => log.length = 0)
 
-  const testUser = {
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'johndoe@example.com'
-  }
-
-  it('should create a contact in the CRM', async () => {
+  it('should create a contact in the CRM marked as "opt_out"', async () => {
     await request(app).post('/contacts')
       .set('cotent-type', 'application/json')
       .send(testUser)
-    const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/civicrm\//))
+    const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/civicrm\/.*entity=contact&action=create/))
     log[index].url.should.startWith(crmUrl)
+    log[index].url.should.match(/%22is_opt_out%22%3A%221%22/)
     log[index].options.method.should.equal('POST')
   })
 
@@ -80,9 +80,29 @@ describe('POST /contacts', () => {
     await request(app).post('/contacts')
       .set('cotent-type', 'application/json')
       .send(testUser)
-      const index = log.findIndex(entry => entry.type === 'log' && entry.msg === `DEBUG: Sending email from test@example.com to johndoe@example.com with subject 'GermanZero: Bestätigung'`)
-      index.should.be.greaterThanOrEqual(0)
-    })
+    const index = log.findIndex(entry => entry.type === 'log' && entry.msg === `DEBUG: Sending email from test@example.com to johndoe@example.com with subject 'GermanZero: Bestätigung'`)
+    index.should.be.greaterThanOrEqual(0)
+  })
+})
+
+describe('GET /conctacts/:contactId/confirmations/:code', () => {
+  beforeEach(() => log.length = 0)
+
+  it('should set the status of a contact to "opt_in"', async () => {
+    await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960b')
+    const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/civicrm\/.*entity=contact&action=update/))
+    log[index].url.should.match(/%22is_opt_out%22%3A%220%22/)
+  })
+
+  it('should redirect to confirmation ok page', async () => {
+    const result = await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960b')
+    result.header.location.should.deepEqual(config.baseUrl + '/contact-confirmed')
+  })
+
+  it('should reject invalid confirmation codes', async () => {
+    const result = await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960c')
+    result.header.location.should.deepEqual(config.baseUrl + '/invalid-confirmation')
+  })
 })
 
 describe('POST /members', () => {

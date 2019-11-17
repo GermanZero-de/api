@@ -1,13 +1,17 @@
+const Redirection = require('../Redirection')
+
 module.exports = (CiviCRMAdapter, MailSender, config) => {
   const {encrypt, decrypt} = require('../Encoder')(config)
 
   function verifyCode(id, code) {
-    if (decrypt(code) !== id) {
-      throw {httpCode: 400, message: 'Invalid code'}
+    try {
+      return decrypt(code) === id
+    } catch(error) {
+      return false
     }
   }
   
-    return {
+  return {
     async registerContact(data) {
       const exists = await CiviCRMAdapter.getContactByEMail(data.email)
       if (exists) {
@@ -23,9 +27,12 @@ module.exports = (CiviCRMAdapter, MailSender, config) => {
     },
     
     async confirmRegistration(id, code) {
-      verifyCode(id, code)
-      await CiviCRMAdapter.updateContact(id, {is_opt_out: '0'})
-      return {httpStatus: 200}
+      if (verifyCode(id, code)) {
+        await CiviCRMAdapter.updateContact(id, {is_opt_out: '0'})
+        throw new Redirection(config.baseUrl + '/contact-confirmed')
+      } else {
+        throw new Redirection(config.baseUrl + '/invalid-confirmation')
+      }
     }
   }
 }

@@ -22,6 +22,7 @@ module.exports = {
   },
   isProduction: false,
   nodeenv: 'test',
+  baseUrl: 'https://test-server',
   key: '12345678901234567890123456789012',
   iv: '1234567890123456'
 }
