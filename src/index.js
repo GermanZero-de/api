@@ -6,5 +6,5 @@ const config = require('./config')
 
 const app = Server(logger, fetch, config)
 app.listen(config.port, () => {
-  Logger.logger.info(`Running on http://localhost:${config.port} in ${config.nodeenv} mode`)
+  logger.info(`Running on http://localhost:${config.port} in ${config.nodeenv} mode`)
 })

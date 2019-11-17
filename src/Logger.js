@@ -24,7 +24,10 @@ const loggerOptions = {
 const logger = winston.createLogger(loggerOptions)
 
 module.exports = {
-  ...logger,
+  debug: logger.debug.bind(logger),
+  info: logger.info.bind(logger),
+  warn: logger.warn.bind(logger),
+  error: logger.error.bind(logger),
 
   logExpressRequests(app) {
     const msg = `{{req.method}} {{req.url}} {{res.responseTime}}ms {{res.statusCode}} - {{req.headers['user-agent']}}`
