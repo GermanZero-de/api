@@ -41,15 +41,50 @@ paths:
         '302':
           description: Contact is confirmed, redirect to /contact-confirmed page. In case of an invalid code, the contact is not confirmed and the redirection goes to /invalid-confirmation page
 
+  /session:
+    post:
+      description: Create a new session by logging in with userid and password
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                userid:
+                  type: string
+                password:
+                  type: string
+              required:
+                - userid
+                - password
+      responses:
+        200:
+          description: Login successful
+        403:
+          description: Login failed
+
+    delete:
+      description: Close the session (logout)
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Session is closed, user is logged out
+        400:
+          description: The provided token doesn't identify an open session which could be closed
+
   /members:
     post:
-      summary: ''
+      summary: Create a new GermanZero member
       responses:
         '201':
           description: Created
         '409':
           description: Conflict
-      description: Create a new GermanZero member
+      description: Create a new GermanZero member. This can only be done by someone who is already a member and therefore has a bearer token from creating a session
+      security:
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
@@ -68,6 +103,7 @@ paths:
                   lastName: Doe
                   email: johndoe@example.com
                   password: my-great-secret
+
 components:
   schemas:
     member:
@@ -95,8 +131,13 @@ components:
             firstName: John
             lastName: Doe
             email: johndoe@example.com
+
   securitySchemes:
     APIKey:
       name: API Key
       type: apiKey
       in: header
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
