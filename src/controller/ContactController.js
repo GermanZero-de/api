@@ -44,7 +44,8 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
     async doConfirmRegistration(contactId) {
       try {
         const contact = await CiviCRMAdapter.updateContact(+contactId, {is_opt_out: '0'})
-        await MailSender.send(contact.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', contact)
+        const model = models.contacts.getById(contactId)
+        await MailSender.send(model.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', contact)
         store.add({type: 'confirmation-completed', contactId})
       } catch (error) {
         throw {httpStatus: 500, message: '' + error}

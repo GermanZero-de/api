@@ -43,6 +43,10 @@ module.exports = function () {
       }
     },
 
+    getById(id) {
+      return contacts.byId[id]
+    },
+
     getByEmail(email) {
       return contacts.byEmail[email]
     },
