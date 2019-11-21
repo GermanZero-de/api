@@ -37,7 +37,8 @@ module.exports = (fetch, config) => {
     },
 
     async updateContact(id, change) {
-      return fetchFromCRM('/contact', 'PUT', {id, json: JSON.stringify(change)})
+      const result = await fetchFromCRM('/contact', 'PUT', {id, json: JSON.stringify(change)})
+      return Object.values(result.values)[0]
     },
 
     async getContactByEMail(email) {

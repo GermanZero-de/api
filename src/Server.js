@@ -1,8 +1,12 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 
-module.exports = (logger, fetch, config) => {
-  const mainRouter = require('./MainRouter')(logger, fetch, config)
+module.exports = (store, models, logger, fetch, config) => {
+  const adapters = require('./adapters')(fetch, config)
+  const mailSender = require('./MailSender')(logger, config)
+  const controller = require('./controller/ContactController')(store, models, adapters.crm, mailSender, config)
+
+  const mainRouter = require('./MainRouter')(adapters, controller)
   const app = express()
 
   if (!config.isProduction) {

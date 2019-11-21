@@ -4,10 +4,7 @@ const swaggerUi = require('swagger-ui-express')
 const YAML = require('yamljs')
 const Redirection = require('./Redirection')
 
-module.exports = (logger, fetch, config) => {
-  const {CiviCRMAdapter, WekanAdapter, RocketChatAdapter} = require('./adapters')(fetch, config)
-  const MailSender = require('./MailSender')(logger, config)
-  const {registerContact, confirmRegistration} = require('./controller/ContactController')(CiviCRMAdapter, MailSender, config)
+module.exports = (adapters, controller) => {
 
   function nocache(req, res, next) {
     res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate')
@@ -34,22 +31,22 @@ module.exports = (logger, fetch, config) => {
   }
 
   async function createMember(data) {
-    const auth = await RocketChatAdapter.loginAsAdmin()
-    await RocketChatAdapter.createUser(auth, {
+    const auth = await adapters.RocketChatAdapter.loginAsAdmin()
+    await adapters.RocketChatAdapter.createUser(auth, {
       name: data.firstName + ' ' + data.lastName,
       username: data.firstName + '.' + data.lastName,
       email: data.email,
       password: data.password
     })
-    await RocketChatAdapter.logout(auth)
+    await adapters.RocketChatAdapter.logout(auth)
 
-    const wekanAuth = await WekanAdapter.loginAsAdmin()
-    await WekanAdapter.createUser(wekanAuth, {
+    const wekanAuth = await adapters.WekanAdapter.loginAsAdmin()
+    await adapters.WekanAdapter.createUser(wekanAuth, {
       username: data.firstName + '.' + data.lastName,
       email: data.email,
       password: data.password
     })
-    await WekanAdapter.logout(wekanAuth)
+    await adapters.WekanAdapter.logout(wekanAuth)
 
     return {httpStatus: 201}
   }
@@ -60,8 +57,8 @@ module.exports = (logger, fetch, config) => {
   router.use('/api-ui', swaggerUi.serve, swaggerUi.setup(oas3Document))
   router.get('/', (req, res) => res.redirect('api-ui'))
   
-  router.post('/contacts', nocache, jsonHandlerFor(req => registerContact(req.body)))
-  router.get('/contacts/:id/confirmations/:code', jsonHandlerFor(req => confirmRegistration(req.params.id, req.params.code)))
+  router.post('/contacts', nocache, jsonHandlerFor(req => controller.registerContact(req.body)))
+  router.get('/contacts/:id/confirmations/:code', jsonHandlerFor(req => controller.confirmRegistration(req.params.id, req.params.code)))
 
   router.post('/members', nocache, jsonHandlerFor(req => createMember(req.body)))
 
