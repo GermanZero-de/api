@@ -64,16 +64,6 @@ paths:
         403:
           description: Login failed
 
-    delete:
-      description: Close the session (logout)
-      security:
-        - bearerAuth: []
-      responses:
-        200:
-          description: Session is closed, user is logged out
-        400:
-          description: The provided token doesn't identify an open session which could be closed
-
   /members:
     post:
       summary: Create a new GermanZero member

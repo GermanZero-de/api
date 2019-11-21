@@ -72,6 +72,16 @@ let models
 let controller
 let store
 
+const auth = require('../src/auth')(fetch, logger)
+const authData = {
+  userId: 'my-user-id',
+  authToken: 'secret-auth-token',
+  name: 'mario',
+  email: 'mario@nintendo',
+  roles: ['admin']
+}
+const validToken = auth.createToken(authData, 100)
+
 describe('RoutingTest', () => {
   beforeEach(() => {
     log.length = 0
@@ -79,13 +89,14 @@ describe('RoutingTest', () => {
     store = new EventStore({basePath: __dirname, logger})
     models = ModelsFactory({store, config})
     controller = require('../src/controller/ContactController')(store, models, adapters.CiviCRMAdapter, mailSender, config)
-    
-    const mainRouter = require('../src/MainRouter')(adapters, controller)
+        
+    const mainRouter = require('../src/MainRouter')(adapters, controller, auth)
     app = express()
     app.use(bodyParser.urlencoded({extended: false}))
     app.use(bodyParser.json())
     app.use(mainRouter)
     app.use((error, req, res, next) => {
+      res.status(error.status || 500).json({error})
       log.push({type: 'express', error, path: req.method + ' ' + req.path})
       next()
     })        
@@ -153,7 +164,7 @@ describe('RoutingTest', () => {
       result.header.location.should.deepEqual(config.baseUrl + '/invalid-confirmation')
     })
   })
-  
+
   describe('POST /members', () => {
     const testUser = {
       firstName: 'John',
@@ -161,12 +172,20 @@ describe('RoutingTest', () => {
       email: 'johndoe@example.com',
       password: 'my-great-secret'
     }
+
+    it('should require a valid authentication', async () => {
+      const result = await request(app).post('/members').set('cotent-type', 'application/json').send(testUser)
+      result.ok.should.be.false
+      result.status.should.equal(401)
+    })
   
     it('should create a user in Rocket.Chat', async () => {
       await request(app).post('/members')
         .set('cotent-type', 'application/json')
+        .set('Authorization', 'Bearer ' + validToken)
         .send(testUser)
       const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/rocket.chat\//))
+      index.should.greaterThanOrEqual(0)
       log[index].url.should.equal('https://rocket.chat/api/v1/login')
       log[index].options.method.should.equal('POST')
       log[index + 1].url.should.equal('https://rocket.chat/api/v1/users.create')
@@ -180,8 +199,10 @@ describe('RoutingTest', () => {
     it('should create a user in Wekan', async () => {
       await request(app).post('/members')
         .set('cotent-type', 'application/json')
+        .set('Authorization', 'Bearer ' + validToken)
         .send(testUser)
       const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/wekan\//))
+      index.should.greaterThanOrEqual(0)
       log[index].url.should.equal('https://wekan/users/login')
       log[index].options.method.should.equal('POST')
       log[index + 1].url.should.equal('https://wekan/api/users')
