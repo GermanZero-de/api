@@ -33,7 +33,7 @@ module.exports = (fetch, config) => {
   return {
     async createContact(data) {
       const result = await fetchFromCRM('/contact', 'POST', {json: JSON.stringify({contact_type: 'Individual', ...data})})
-      return result.values
+      return Object.values(result.values)[0]
     },
 
     async updateContact(id, change) {
