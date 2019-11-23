@@ -19,3 +19,21 @@ Next step will be provide functionality on the website to help users to find the
 You're very welcome!
 
 Add issues, or event pull requests or just get in touch to talk about making things better or easier!
+
+## Installation
+
+To install this software first you need to have:
+
+- A running instance of CiviCRM
+- Node.js >= 12.13.0 installed
+
+Then you should
+
+1. Clone the repository `git clone https://github.com/GermanZero-de/api.git`
+2. Change to the new folder `cd api`
+3. Install dependencies: `npm install`
+4. Generate keys by running `node create-keys`
+5. Create an `.env` file by copying `.env-sample` and fill out all values (use the keys from the step before)
+6. Run the server by calling `npm start`
+
+It is also possible to use our [docker image](https://hub.docker.com/repository/docker/germanzero/api) but you need to specify all environment variables like described in `.env-sample`.
