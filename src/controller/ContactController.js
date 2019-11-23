@@ -10,7 +10,7 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
       return false
     }
   }
-  
+
   return {
     registerContact(contact) {
       if (models.contacts.getByEmail(contact.email)) {
@@ -22,7 +22,7 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
 
     async doContactRegistration(data) {
       try {
-      const contact = await CiviCRMAdapter.createContact({first_name: data.firstName, last_name: data.lastName, email: data.email, is_opt_out: '1'})
+      const contact = await CiviCRMAdapter.createContact({...data, is_opt_out: '1'})
       const code = encrypt(contact.id)
       const link = config.baseUrl + `/contacts/${contact.id}/confirmations/${code}`
       await MailSender.send(data.email, 'GermanZero: Bestätigung', 'verificationMail', {link, contact})

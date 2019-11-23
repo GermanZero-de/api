@@ -1,3 +1,5 @@
+const {mapContact2CrmFields, mapCrm2ContactFields} = require('../mapper/CrmMapper')
+
 const methodMapping = {
   post: 'create',
   get: 'get',
@@ -32,12 +34,13 @@ module.exports = (fetch, config) => {
 
   return {
     async createContact(data) {
-      const result = await fetchFromCRM('/contact', 'POST', {json: JSON.stringify({contact_type: 'Individual', ...data})})
+      const fields = mapContact2CrmFields(data)
+      const result = await fetchFromCRM('/contact', 'POST', {json: JSON.stringify({contact_type: 'Individual', ...fields})})
       return Object.values(result.values)[0]
     },
 
     async updateContact(id, change) {
-      const result = await fetchFromCRM('/contact', 'PUT', {id, json: JSON.stringify(change)})
+      const result = await fetchFromCRM('/contact', 'PUT', {id, json: JSON.stringify(mapContact2CrmFields(change))})
       return Object.values(result.values)[0]
     },
 
@@ -46,7 +49,7 @@ module.exports = (fetch, config) => {
       if (result.is_error || !result.values || Object.keys(result.values).length === 0) {
         return undefined
       }
-      return Object.values(result.values)[0]
+      return mapCrm2ContactFields(Object.values(result.values)[0])
     }
   }
 }
