@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node src",
     "lint": "eslint src",
-    "test": "nyc mocha test"
+    "test": "nyc --reporter html --reporter=text-summary mocha test"
   },
   "repository": {
     "type": "git",
