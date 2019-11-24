@@ -122,7 +122,7 @@ class EventStore {
     this.changeStream.write(JSON.stringify(completeEvent) + '\n')
     this.listeners.forEach(listener => {
       try {
-        listener(completeEvent, (condition, message) => EventStore.assert(event, condition, message), 'new')
+        listener(completeEvent, (condition, message) => EventStore.assert(completeEvent, condition, message), 'new')
       } catch (error) {
         self.logger.error(error)
         self.logger.debug(error.stack)
