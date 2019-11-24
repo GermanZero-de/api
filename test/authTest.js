@@ -7,7 +7,14 @@ const fetch = require('./MockRocketChatLogin')
 const Auth = require('../src/auth')
 
 process.env.TEAM_URL = 'https://authentication.site'
-const auth = Auth(fetch, console)
+
+const log = []
+const logger = {
+  error: (error) => log.push({error}),
+  debug: (debug) => log.push({debug}),
+}
+
+const auth = Auth(fetch, logger)
 
 describe('auth module', () => {
   describe('Login', () => {
