@@ -4,12 +4,7 @@ const should = require('should')
 const fs = require('fs')
 const path = require('path')
 const EventStore = require('../src/EventStore')
-
-const log = []
-const logger = {
-  error: (error) => log.push({error}),
-  debug: (debug) => log.push({debug}),
-}
+const logger = require('./MockLogger')
 
 const testEvent = { type: 'test-event', test: { id: 99 } }
 
@@ -18,7 +13,7 @@ describe('EventStore', () => {
 
   describe('add', () => {
     beforeEach(() => {
-      log.length = 0
+      logger.reset()
       fs.unlinkSync(path.resolve(__dirname, 'events-0.json'))
       store = new EventStore({basePath: __dirname, logger})
     })
@@ -67,12 +62,12 @@ describe('EventStore', () => {
     it('should report errors in event handlers', async () => {
       store.listen((event, assert) => assert(event.type !== 'test-event', 'No test event expected'))
       await store.add(testEvent)
-      log[0].error.should.match(/^Read model 'EventStore.test.js', event 'test-event' \(.*\): No test event expected$/)
+      logger.log[0].error.should.match(/^Read model 'EventStore.test.js', event 'test-event' \(.*\): No test event expected$/)
     })
   })
 
   describe('replay', () => {
-    beforeEach(() => log.length = 0)
+    beforeEach(() => logger.reset())
 
     it('should replay all stored events', async () => {
       fs.writeFileSync(path.resolve(__dirname, 'events-0.json'), JSON.stringify(testEvent) + '\n')

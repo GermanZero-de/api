@@ -11,8 +11,17 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
     }
   }
 
+  function assert(condition, message) {
+    if (!condition) {
+      throw {httpStatus: 400, message}
+    }
+  }
+
   return {
     registerContact(contact) {
+      assert(contact.email && contact.email.match(/.+@.+\.\w+/), `email field doesn't look like an email`)
+      assert(contact.firstName, `Field 'firstName' is required`)
+      assert(contact.lastName, `Field 'lastName' is required`)
       if (models.contacts.getByEmail(contact.email)) {
         throw {httpStatus: 409, message: 'A contact with this email address already exists'}
       }
