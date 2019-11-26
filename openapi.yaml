@@ -37,6 +37,17 @@ paths:
     get:
       summary: 'Marks the email address of the contact as confirmed'
       description: Contacts are firstly created opted out from mailings to comply with GDPR. A first email is sent then, containing a confirmation link which is this route.
+      parameters:
+        - in: path
+          name: contactId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
       responses:
         '302':
           description: Contact is confirmed, redirect to /contact-confirmed page. In case of an invalid code, the contact is not confirmed and the redirection goes to /invalid-confirmation page
@@ -44,6 +55,18 @@ paths:
   /contacts/mc-webhooks/:code:
     post:
       summary: Webhook endpoint for information from MailChimp. Currently only 'unsubscribe' events are supported.
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Payload from MailChimp
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MailChimpUnsubscribeEvent'
       responses:
         200:
           description: Information accepted
@@ -157,6 +180,16 @@ components:
             firstName: John
             lastName: Doe
             email: johndoe@example.com
+
+    MailChimpUnsubscribeEvent:
+      title: Payload of MailChimp unsubscribe event
+      type: object
+      properties:
+        type:
+          enum:
+            - unsubscribe
+        data[email]:
+          type: string
 
   securitySchemes:
     APIKey:
