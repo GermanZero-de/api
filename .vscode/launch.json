@@ -18,7 +18,7 @@
       "type": "node",
       "runtimeVersion": "12.13.0",
       "request": "launch",
-      "name": "Run Mocha tests",
+      "name": "Run tests",
       "skipFiles": [
         "<node_internals>/**"
       ],

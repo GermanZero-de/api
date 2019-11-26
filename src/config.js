@@ -22,6 +22,11 @@ const config = {
     from: 'GermanZero.de <germanzero@dilab.co>',
     redirect: process.env.MAIL_REDIRECT
   },
+  mailchimp: {
+    apiKey: process.env.MC_APIKEY,
+    listId: process.env.MC_LISTID,
+    webhookCode: process.env.MC_WEBHOOK_CODE
+  },
   isProduction: process.env.NODE_ENV === 'production',
   nodeenv: process.env.NODE_ENV || 'develop',
   port: process.env.PORT || 3000,

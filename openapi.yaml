@@ -41,6 +41,17 @@ paths:
         '302':
           description: Contact is confirmed, redirect to /contact-confirmed page. In case of an invalid code, the contact is not confirmed and the redirection goes to /invalid-confirmation page
 
+  /contacts/mc-webhooks/:code:
+    post:
+      summary: Webhook endpoint for information from MailChimp. Currently only 'unsubscribe' events are supported.
+      responses:
+        200:
+          description: Information accepted
+        403:
+          description: An invalid code was sent
+        404:
+          description: Contact not found
+
   /session:
     post:
       description: Create a new session by logging in with userid and password

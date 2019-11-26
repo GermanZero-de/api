@@ -20,6 +20,11 @@ module.exports = {
     from: 'test@example.com',
     preventSendingEMails: true
   },
+  mailchimp: {
+    apiKey: 'mc-key',
+    listId: 'mc-list',
+    webhookCode: 'secret-mc-code'
+  },
   isProduction: false,
   nodeenv: 'test',
   baseUrl: 'https://test-server',

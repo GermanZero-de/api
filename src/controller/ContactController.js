@@ -59,6 +59,21 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
       } catch (error) {
         throw {httpStatus: 500, message: '' + error}
       }
+    },
+
+    async mailChimpWebhook(code, data) {
+      if (code !== config.mailchimp.webhookCode) {
+        throw {httpStatus: 403, message: 'Invalid code'}
+      }
+      if (data.type !== 'unsubscribe') {
+        return {}
+      }
+      const contact = models.contacts.getByEmail(data['data[email]'])
+      if (!contact) {
+        throw {httpStatus: 404, message: 'Unknown contact'}
+      }
+      await CiviCRMAdapter.updateContact(+contact.id, {is_opt_out: '1'})
+      return {}
     }
   }
 }

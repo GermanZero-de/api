@@ -62,6 +62,8 @@ module.exports = (adapters, controller, auth) => {
   router.post('/contacts', nocache, jsonHandlerFor(req => controller.registerContact(req.body)))
   router.get('/contacts/:id/confirmations/:code', jsonHandlerFor(req => controller.confirmRegistration(req.params.id, req.params.code)))
 
+  router.post('/contacts/mc-webhooks/:code', jsonHandlerFor(req => controller.mailChimpWebhook(req.params.code, req.body)))
+
   router.post('/members', nocache, auth.bearerAuth, jsonHandlerFor(req => createMember(req.body)))
 
   return router
