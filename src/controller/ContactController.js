@@ -72,6 +72,7 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
       if (!contact) {
         throw {httpStatus: 404, message: 'Unknown contact'}
       }
+      store.add({type: 'contact-unsubscribe', contactId: +contact.id, data})
       await CiviCRMAdapter.updateContact(+contact.id, {is_opt_out: '1'})
       return {}
     }
