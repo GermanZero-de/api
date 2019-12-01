@@ -154,6 +154,13 @@ components:
           enum:
             - Dr.
             - Prof.
+        streetAddress:
+          type: string
+        postalCode:
+          type: string
+        city:
+          type: string
+
 
     member:
       title: member
