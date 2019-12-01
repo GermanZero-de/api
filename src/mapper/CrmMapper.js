@@ -6,6 +6,9 @@ const fieldMapping = {
   last_name: 'lastName',
   email: 'email',
   phone: 'phone',
+  street_address: 'streetAddress',
+  postal_code: 'postalCode',
+  city: 'city',
   is_opt_out: 'is_opt_out'
 }
 
