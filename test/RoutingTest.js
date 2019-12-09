@@ -21,11 +21,6 @@ function crmCmd(action, entity, json, additional) {
 }
 
 const expectedFetchResults = {
-  'POST https://rocket.chat/api/v1/users.create': okResult({success: true}),
-  'POST https://rocket.chat/api/v1/login': okResult({status: 'success', data: {}}),
-  'POST https://rocket.chat/api/v1/logout': okResult({}),
-  'POST https://wekan/users/login': okResult({}),
-  'POST https://wekan/api/users': okResult({}),
   [crmCmd('create', 'contact', {contact_type: 'Individual', first_name: 'John', last_name: 'Doe', email: 'johndoe@example.com', is_opt_out: '1'})]: okResult({values: {'4711': {id:'4711'}}}),
   [crmCmd('get', 'contact', 1, 'email=johndoe%40example.com')]: okResult({values: {}}),
   [crmCmd('update', 'contact', {is_opt_out: '0'}, 'id=4711')]: okResult({values: [{email: 'johndoe@example.com'}]})
@@ -72,16 +67,6 @@ let models
 let controller
 let store
 
-const auth = require('../src/auth')(fetch, logger)
-const authData = {
-  userId: 'my-user-id',
-  authToken: 'secret-auth-token',
-  name: 'mario',
-  email: 'mario@nintendo',
-  roles: ['admin']
-}
-const validToken = auth.createToken(authData, 100)
-
 describe('RoutingTest', () => {
   beforeEach(() => {
     log.length = 0
@@ -90,7 +75,7 @@ describe('RoutingTest', () => {
     models = ModelsFactory({store, config})
     controller = require('../src/controller/ContactController')(store, models, adapters.CiviCRMAdapter, mailSender, config)
         
-    const mainRouter = require('../src/MainRouter')(adapters, controller, auth)
+    const mainRouter = require('../src/MainRouter')(adapters, controller, {bearerAuth: () => {}})
     app = express()
     app.use(bodyParser.urlencoded({extended: false}))
     app.use(bodyParser.json())
@@ -110,9 +95,9 @@ describe('RoutingTest', () => {
     })
   })
   
-  describe('POST /contacts', () => {  
+  describe('POST /subscriptions', () => {  
     it('should create a contact in the CRM marked as "opt_out"', async () => {
-      await request(app).post('/contacts')
+      await request(app).post('/subscriptions')
         .set('cotent-type', 'application/json')
         .send(testUser)
       await worker(models, controller, {setTimeout: noop})
@@ -123,7 +108,7 @@ describe('RoutingTest', () => {
     })
   
     it('should send a confirmation email', async () => {
-      await request(app).post('/contacts')
+      await request(app).post('/subscriptions')
         .set('cotent-type', 'application/json')
         .send(testUser)
       await worker(models, controller, {setTimeout: noop})
@@ -164,53 +149,4 @@ describe('RoutingTest', () => {
       result.header.location.should.deepEqual(config.baseUrl + '/invalid-confirmation')
     })
   })
-
-  describe('POST /members', () => {
-    const testUser = {
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'johndoe@example.com',
-      password: 'my-great-secret'
-    }
-
-    it('should require a valid authentication', async () => {
-      const result = await request(app).post('/members').set('cotent-type', 'application/json').send(testUser)
-      result.ok.should.be.false
-      result.status.should.equal(401)
-    })
-  
-    it('should create a user in Rocket.Chat', async () => {
-      await request(app).post('/members')
-        .set('cotent-type', 'application/json')
-        .set('Authorization', 'Bearer ' + validToken)
-        .send(testUser)
-      const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/rocket.chat\//))
-      index.should.greaterThanOrEqual(0)
-      log[index].url.should.equal('https://rocket.chat/api/v1/login')
-      log[index].options.method.should.equal('POST')
-      log[index + 1].url.should.equal('https://rocket.chat/api/v1/users.create')
-      log[index + 1].options.method.should.equal('POST')
-      const body = JSON.parse(log[index + 1].options.body)
-      body.name.should.equal(`${testUser.firstName} ${testUser.lastName}`)
-      body.email.should.equal(testUser.email)
-      body.password.should.equal(testUser.password)
-    })
-  
-    it('should create a user in Wekan', async () => {
-      await request(app).post('/members')
-        .set('cotent-type', 'application/json')
-        .set('Authorization', 'Bearer ' + validToken)
-        .send(testUser)
-      const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/wekan\//))
-      index.should.greaterThanOrEqual(0)
-      log[index].url.should.equal('https://wekan/users/login')
-      log[index].options.method.should.equal('POST')
-      log[index + 1].url.should.equal('https://wekan/api/users')
-      log[index + 1].options.method.should.equal('POST')
-      const body = JSON.parse(log[index + 1].options.body)
-      body.username.should.equal(`${testUser.firstName}.${testUser.lastName}`)
-      body.email.should.equal(testUser.email)
-      body.password.should.equal(testUser.password)
-    })
-  })  
 })

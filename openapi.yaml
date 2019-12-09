@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: germanzero
-  version: '1.0'
+  version: '1.1'
   license:
     name: MIT
   description: An API to access GermanZero
@@ -12,15 +12,36 @@ servers:
     description: 'Live server'
 
 paths:
-  /contacts:
+  /subscriptions:
     post:
-      summary: 'Create a new contact in CRM'
+      summary: Subscribe to newsletter
+      description: Creates a new GermanZero contact and sends an email to the given address with a confirmation link
       responses:
         '202':
           description: Contact is created but must be confirmed
         '409':
           description: A contact with the given email address already exist
-      description: Create a new GermanZero contact and sends an email to the given address with a confirmation link
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/contact'
+            examples:
+              example:
+                value:
+                  firstName: John
+                  lastName: Doe
+                  email: johndoe@example.com
+
+  /members:
+    post:
+      summary: Join GermanZero as a member
+      description: Creates a new GermanZero contact and sends an email to the given address with a confirmation link
+      responses:
+        '202':
+          description: Contact is created but must be confirmed
+        '409':
+          description: A contact with the given email address already exist
       requestBody:
         content:
           application/json:
@@ -98,15 +119,15 @@ paths:
         403:
           description: Login failed
 
-  /members:
+  /users:
     post:
-      summary: Create a new GermanZero member
+      summary: Create a new GermanZero tools user
       responses:
         '201':
           description: Created
         '409':
           description: Conflict
-      description: Create a new GermanZero member. This can only be done by someone who is already a member and therefore has a bearer token from creating a session
+      description: Create a new GermanZero tools user. This can only be done by someone who is already a tool user and therefore has a bearer token from creating a session
       security:
         - bearerAuth: []
       requestBody:
@@ -114,7 +135,7 @@ paths:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/member'
+                - $ref: '#/components/schemas/user'
                 - type: object
                   properties:
                     password:
@@ -161,15 +182,14 @@ components:
         city:
           type: string
 
-
-    member:
-      title: member
+    user:
+      title: user
       type: object
-      description: Representation of a GermanZero member record
+      description: Representation of a GermanZero user record
       properties:
         id:
           type: string
-           description: Automatic generated identifier for member
+          description: Automatic generated identifier for user
         firstName:
           type: string
         lastName:
