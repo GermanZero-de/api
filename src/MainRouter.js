@@ -24,13 +24,12 @@ module.exports = (adapters, controller, auth) => {
           next()
         } else {
           res.status(error.status || 500).json(error)
-          next(error)
         }
       }
     }
   }
 
-  async function createMember(data) {
+  async function createUser(data) {
     const auth = await adapters.RocketChatAdapter.loginAsAdmin()
     await adapters.RocketChatAdapter.createUser(auth, {
       name: data.firstName + ' ' + data.lastName,
@@ -56,15 +55,14 @@ module.exports = (adapters, controller, auth) => {
 
   router.use('/api-ui', swaggerUi.serve, swaggerUi.setup(oas3Document))
   router.get('/', (req, res) => res.redirect('api-ui'))
-
-  router.post('/session', nocache, jsonHandlerFor(req => auth.login(req.body)))
   
-  router.post('/contacts', nocache, jsonHandlerFor(req => controller.registerContact(req.body)))
+  router.post('/subscriptions', nocache, jsonHandlerFor(req => controller.registerContact(req.body, false)))
+  router.post('/members', nocache, jsonHandlerFor(req => controller.registerContact(req.body, true)))
   router.get('/contacts/:id/confirmations/:code', jsonHandlerFor(req => controller.confirmRegistration(req.params.id, req.params.code)))
-
   router.post('/contacts/mc-webhooks/:code', jsonHandlerFor(req => controller.mailChimpWebhook(req.params.code, req.body)))
 
-  router.post('/members', nocache, auth.bearerAuth, jsonHandlerFor(req => createMember(req.body)))
+  router.post('/session', nocache, jsonHandlerFor(req => auth.login(req.body)))
+  router.post('/users', nocache, auth.bearerAuth, jsonHandlerFor(req => createUser(req.body)))
 
   return router
 }
