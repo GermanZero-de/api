@@ -1,5 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const cors = require('cors')
 
 module.exports = (store, models, logger, fetch, config) => {
   const auth = require('./auth')(fetch, logger)
@@ -15,6 +16,7 @@ module.exports = (store, models, logger, fetch, config) => {
   }
   app.use(bodyParser.urlencoded({extended: false}))
   app.use(bodyParser.json())
+  app.use(cors())
   logger.logExpressRequests(app)
   app.use('/', mainRouter)
   logger.logExpressErrors(app)
