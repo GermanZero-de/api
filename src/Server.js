@@ -11,12 +11,14 @@ module.exports = (store, models, logger, fetch, config) => {
   const mainRouter = require('./MainRouter')(adapters, controller, auth, logger)
   const app = express()
 
+  const origin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : undefined
+
   if (!config.isProduction) {
     app.set('json spaces', 2)
   }
   app.use(bodyParser.urlencoded({extended: false}))
   app.use(bodyParser.json())
-  app.use(cors())
+  app.use(cors({origin}))
   logger.logExpressRequests(app)
   app.use('/', mainRouter)
   logger.logExpressErrors(app)
