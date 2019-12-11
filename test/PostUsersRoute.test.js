@@ -49,7 +49,7 @@ describe('POST /users', () => {
 
   beforeEach(() => {
     logger.reset()
-    const mainRouter = require('../src/MainRouter')(adapters, {}, auth)
+    const mainRouter = require('../src/MainRouter')(adapters, {}, auth, logger)
     app = express()
     app.use(bodyParser.urlencoded({extended: false}))
     app.use(bodyParser.json())

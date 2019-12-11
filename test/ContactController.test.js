@@ -16,7 +16,13 @@ const adapters = require('../src/adapters')(fetch, config)
 const testContact = {
   email: 'janedoe@example.com',
   firstName: 'Jane',
-  lastName: 'Doe'
+  lastName: 'Doe',
+  postalCode: '10000'
+}
+
+const obligatoryFields = {
+  subscription: ['email', 'postalCode'],
+  member: ['email', 'firstName', 'lastName']
 }
 
 describe('ContactController', () => {
@@ -24,21 +30,23 @@ describe('ContactController', () => {
   let store
   let models
 
-  before(() => {
+  beforeEach(() => {
     logger.reset()
-    fs.unlinkSync(path.resolve(__dirname, 'events-0.json'))
+    fs.writeFileSync(path.resolve(__dirname, 'events-0.json'), '')
     store = new EventStore({basePath: __dirname, logger})
     models = ModelsFactory({store, config})
     controller = require('../src/controller/ContactController')(store, models, adapters.CiviCRMAdapter, mailSender, config)
   })
 
   describe('createContact', () => {
-    Object.keys(testContact).forEach(key => {
-      it(`should moan if '${key}' is invalid`, () => {
-        const contact = JSON.parse(JSON.stringify(testContact))
-        delete contact[key]
-        const msg = key === 'email' ? `email field doesn't look like an email` : `Field '${key}' is required`
-        ;(() => controller.registerContact(contact)).should.throw(msg)
+    Object.keys(obligatoryFields).forEach(type => {
+      obligatoryFields[type].forEach(key => {
+        it(`should moan if '${key}' is invalid in a ${type}`, () => {
+          const contact = JSON.parse(JSON.stringify(testContact))
+          delete contact[key]
+          const msg = key === 'email' ? `email field doesn't look like an email` : `Field '${key}' is required`
+          ;(() => controller.registerContact(contact, type === 'member')).should.throw(msg)
+        })
       })
     })
   })

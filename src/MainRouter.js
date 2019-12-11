@@ -4,7 +4,7 @@ const swaggerUi = require('swagger-ui-express')
 const YAML = require('yamljs')
 const Redirection = require('./Redirection')
 
-module.exports = (adapters, controller, auth) => {
+module.exports = (adapters, controller, auth, logger) => {
 
   function nocache(req, res, next) {
     res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate')
@@ -23,6 +23,7 @@ module.exports = (adapters, controller, auth) => {
           res.redirect(error.redirect)
           next()
         } else {
+          logger.debug(error)
           res.status(error.status || 500).json(error)
         }
       }

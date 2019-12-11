@@ -18,10 +18,14 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
   }
 
   return {
-    registerContact(contact) {
+    registerContact(contact, isMember) {
       assert(contact.email && contact.email.match(/.+@.+\.\w+/), `email field doesn't look like an email`)
-      assert(contact.firstName, `Field 'firstName' is required`)
-      assert(contact.lastName, `Field 'lastName' is required`)
+      if (isMember) {
+        assert(contact.firstName, `Field 'firstName' is required`)
+        assert(contact.lastName, `Field 'lastName' is required`)
+      } else {
+        assert(contact.postalCode, `Field 'postalCode' is required`)
+      }
       if (models.contacts.getByEmail(contact.email)) {
         throw {httpStatus: 409, message: 'A contact with this email address already exists'}
       }
@@ -31,11 +35,11 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
 
     async doContactRegistration(data) {
       try {
-      const contact = await CiviCRMAdapter.createContact({...data, is_opt_out: '1'})
-      const code = encrypt(contact.id)
-      const link = config.baseUrl + `/contacts/${contact.id}/confirmations/${code}`
-      await MailSender.send(data.email, 'GermanZero: Bestätigung', 'verificationMail', {link, contact})
-      store.add({type: 'contact-created', contact: {...data, id: contact.id}, code})
+        const contact = await CiviCRMAdapter.createContact({...data, is_opt_out: '1'})
+        const code = encrypt(contact.id)
+        const link = config.baseUrl + `/contacts/${contact.id}/confirmations/${code}`
+        await MailSender.send(data.email, 'GermanZero: Bestätigung', 'verificationMail', {link, contact})
+        store.add({type: 'contact-created', contact: {...data, id: contact.id}, code})
       } catch (error) {
         throw {httpStatus: 500, message: '' + error}
       }

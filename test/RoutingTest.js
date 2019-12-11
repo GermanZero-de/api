@@ -21,7 +21,7 @@ function crmCmd(action, entity, json, additional) {
 }
 
 const expectedFetchResults = {
-  [crmCmd('create', 'contact', {contact_type: 'Individual', first_name: 'John', last_name: 'Doe', email: 'johndoe@example.com', is_opt_out: '1'})]: okResult({values: {'4711': {id:'4711'}}}),
+  [crmCmd('create', 'contact', {contact_type: 'Individual', first_name: 'John', last_name: 'Doe', email: 'johndoe@example.com', postal_code: 10000, is_opt_out: '1'})]: okResult({values: {'4711': {id:'4711'}}}),
   [crmCmd('get', 'contact', 1, 'email=johndoe%40example.com')]: okResult({values: {}}),
   [crmCmd('update', 'contact', {is_opt_out: '0'}, 'id=4711')]: okResult({values: [{email: 'johndoe@example.com'}]})
 }
@@ -49,7 +49,8 @@ const fetch = async (url, options) => {
 const testUser = {
   firstName: 'John',
   lastName: 'Doe',
-  email: 'johndoe@example.com'
+  email: 'johndoe@example.com',
+  postalCode: 10000
 }
 
 const mailSender = {
@@ -75,7 +76,7 @@ describe('RoutingTest', () => {
     models = ModelsFactory({store, config})
     controller = require('../src/controller/ContactController')(store, models, adapters.CiviCRMAdapter, mailSender, config)
         
-    const mainRouter = require('../src/MainRouter')(adapters, controller, {bearerAuth: () => {}})
+    const mainRouter = require('../src/MainRouter')(adapters, controller, {bearerAuth: () => {}}, logger)
     app = express()
     app.use(bodyParser.urlencoded({extended: false}))
     app.use(bodyParser.json())
@@ -95,7 +96,7 @@ describe('RoutingTest', () => {
     })
   })
   
-  describe('POST /subscriptions', () => {  
+  describe('POST /subscriptions', () => {
     it('should create a contact in the CRM marked as "opt_out"', async () => {
       await request(app).post('/subscriptions')
         .set('cotent-type', 'application/json')
