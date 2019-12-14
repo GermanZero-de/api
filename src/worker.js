@@ -13,7 +13,7 @@ module.exports = async function worker(models, controller, logger, timer = globa
           result = await controller.doConfirmRegistration(request.contactId)
           break
       }
-      if (result.httpStatus > 399) {
+      if (result && result.httpStatus > 399) {
         throw result
       } else {
         timer.setTimeout(() => worker(models, controller, logger, timer), 1)
