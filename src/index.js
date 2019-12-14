@@ -15,7 +15,7 @@ const controller = require('./controller/ContactController')(store, models, crmA
 
 worker(models, controller)
 
-const app = Server(store, models, logger, fetch, config)
+const app = Server(store, models, logger, fetch, mailSender, config)
 const server = app.listen(config.port, async () => {
   await models.isReady
   logger.info(`Running on http://localhost:${config.port} in ${config.nodeenv} mode`)
