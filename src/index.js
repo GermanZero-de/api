@@ -13,7 +13,7 @@ const crmAdapter = require('./adapters/CiviCRMAdapter')(fetch, config)
 const mailSender = require('./MailSender')(logger, config)
 const controller = require('./controller/ContactController')(store, models, crmAdapter, mailSender, config)
 
-worker(models, controller)
+worker(models, controller, logger)
 
 const app = Server(store, models, logger, fetch, mailSender, config)
 const server = app.listen(config.port, async () => {
