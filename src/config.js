@@ -19,7 +19,7 @@ const config = {
     smtpPort: process.env.SMTP_PORT,
     user: process.env.SMTP_USER,
     pwd: process.env.SMTP_PWD,
-    from: 'GermanZero.de <germanzero@dilab.co>',
+    from: process.env.MAIL_FROM,
     redirect: process.env.MAIL_REDIRECT
   },
   mailchimp: {
