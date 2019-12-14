@@ -25,6 +25,8 @@ process.on('SIGTERM', () => {
   logger.info('SIGTERM signal received.')
   server.close(async () => {
     logger.info('http server closed')
+    worker.close()
+    logger.info('worker terminated')
     store.end()
     logger.info('event stream ended')
     process.exit(0)
