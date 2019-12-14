@@ -1,8 +1,9 @@
 module.exports = async function worker(models, controller, logger, timer = global) {
+  await models.isReady
+  let request
+  let result
   try {
-    await models.isReady
-    let result
-    const request = await models.contacts.getFirstRequest()
+    request = await models.contacts.getFirstRequest()
     if (request) {
       switch (request.type) {
         case 'create-contact':
@@ -22,6 +23,8 @@ module.exports = async function worker(models, controller, logger, timer = globa
       timer.setTimeout(() => worker(models, controller, logger, timer), 1000)
     }
   } catch (error) {
+    models.contacts.markRequestAsFailing(request)
     logger.error({ message: 'FATAL: worker got an error on processing an event: ' + error.message, stack: error.stack})
+    timer.setTimeout(() => worker(models, controller, logger, timer), 1000)
   }
 }

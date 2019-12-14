@@ -52,7 +52,11 @@ module.exports = function () {
     },
 
     getFirstRequest() {
-      return requests[0]
+      return requests.find(request => !request.failing)
+    },
+
+    markRequestAsFailing(request) {
+      request.failing = true
     }
   }
 }
