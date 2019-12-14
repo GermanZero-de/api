@@ -53,7 +53,8 @@ describe('ContactController', () => {
 
   describe('mailchimp-webhook', () => {
     it('should reject accesses with wrong code', async () => {
-      controller.mailChimpWebhook('wrong-code', {}).should.be.rejectedWith('Invalid code')
+      const result = await controller.mailChimpWebhook('wrong-code', {})
+      result.should.deepEqual({httpStatus: 403, message: 'Invalid code'})
     })
 
     it('should ignore non-unsubscribe events', async () => {
@@ -62,7 +63,8 @@ describe('ContactController', () => {
     })
 
     it('should reject unsubscribes for unknown contacts', async () => {
-      controller.mailChimpWebhook('secret-mc-code', {type: 'unsubscribe', 'data[email]': 'john@example.com'}).should.be.rejectedWith('Unknown contact')
+      const result = await controller.mailChimpWebhook('secret-mc-code', {type: 'unsubscribe', 'data[email]': 'john@example.com'})
+      result.should.deepEqual({httpStatus: 404, message: 'Unknown contact'})
     })
 
     it('should set opt-out when unsubscribe event arrives', async () => {

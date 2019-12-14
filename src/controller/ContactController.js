@@ -1,6 +1,6 @@
 const Redirection = require('../Redirection')
 
-module.exports = (store, models, CiviCRMAdapter, MailSender, logger, config) => {
+module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
   const {encrypt, decrypt} = require('../Encoder')(config)
 
   function verifyCode(id, code) {
@@ -41,7 +41,7 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, logger, config) => 
         await MailSender.send(data.email, 'GermanZero: Bestätigung', 'verificationMail', {link, contact})
         store.add({type: 'contact-created', contact: {...data, id: contact.id}, code})
       } catch (error) {
-        return {httpStatus: 500, message: '' + error}
+        return {httpStatus: 500, message: '' + error, stack: error.stack}
       }
     },
     
@@ -61,7 +61,7 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, logger, config) => 
         await MailSender.send(model.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', contact)
         store.add({type: 'confirmation-completed', contactId})
       } catch (error) {
-        return {httpStatus: 500, message: '' + error}
+        return {httpStatus: 500, message: '' + error, stack: error.stack}
       }
     },
 

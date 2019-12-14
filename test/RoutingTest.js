@@ -101,7 +101,7 @@ describe('RoutingTest', () => {
       await request(app).post('/subscriptions')
         .set('cotent-type', 'application/json')
         .send(testUser)
-      await worker(models, controller, {setTimeout: noop})
+      await worker(models, controller, logger, {setTimeout: noop})
       const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/civicrm\/.*entity=contact&action=create/))
       log[index].url.should.startWith(crmUrl)
       log[index].url.should.match(/%22is_opt_out%22%3A%221%22/)
@@ -112,7 +112,7 @@ describe('RoutingTest', () => {
       await request(app).post('/subscriptions')
         .set('cotent-type', 'application/json')
         .send(testUser)
-      await worker(models, controller, {setTimeout: noop})
+      await worker(models, controller, logger, {setTimeout: noop})
       const mail = log.find(entry => entry.type === 'mail')
       mail.info.should.containDeep({to: testUser.email, subject: 'GermanZero: Bestätigung', template: 'verificationMail'})
       mail.info.data.should.have.property('link')
@@ -128,14 +128,14 @@ describe('RoutingTest', () => {
 
     it('should set the status of a contact to "opt_in"', async () => {
       await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960b')
-      await worker(models, controller, {setTimeout: noop})
+      await worker(models, controller, logger, {setTimeout: noop})
       const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/civicrm\/.*entity=contact&action=update/))
       log[index].url.should.match(/%22is_opt_out%22%3A%220%22/)
     })
   
     it('should send a welcome mail', async () => {
       await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960b')
-      await worker(models, controller, {setTimeout: noop})
+      await worker(models, controller, logger, {setTimeout: noop})
       const mail = log.find(entry => entry.type === 'mail')
       mail.info.should.containDeep({to: testUser.email, subject: 'GermanZero: E-Mail Adresse ist bestätigt', template: 'welcomeMail'})
     })

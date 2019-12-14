@@ -17,15 +17,15 @@ module.exports = (adapters, controller, auth, logger) => {
     return async (req, res, next) => {
       try {
         const result = await func(req)
-        res.status(result.httpStatus || 200).json(result)
-      } catch (error) {
-        if (error instanceof Redirection) {
-          res.redirect(error.redirect)
+        if (result instanceof Redirection) {
+          res.redirect(result.redirect)
           next()
         } else {
-          logger.debug(error)
-          res.status(error.status || 500).json(error)
+          res.status(result.httpStatus || 200).json(result)
         }
+      } catch (error) {
+        logger.debug(error)
+        res.status(error.status || 500).json(error)
       }
     }
   }

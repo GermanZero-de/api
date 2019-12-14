@@ -22,6 +22,6 @@ module.exports = async function worker(models, controller, logger, timer = globa
       timer.setTimeout(() => worker(models, controller, logger, timer), 1000)
     }
   } catch (error) {
-    logger.error({ message: 'FATAL: worker got an error on processing an event: ' + error.message})
+    logger.error({ message: 'FATAL: worker got an error on processing an event: ' + error.message, stack: error.stack})
   }
 }
