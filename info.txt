@@ -1,5 +1,5 @@
-commit 1a57ba2bfb792e2cd7d48fa9b4681026617d072d
-Author: Joachim Schirrmacher <j.schirrmacher@justso.de>
-Date:   Sun Dec 15 12:51:37 2019 +0100
+commit 54af10c006cae358912785dbbb2375be5d59c25f
+Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
+Date:   Sun Dec 15 15:21:57 2019 +0100
 
-    Added info route
+    Added route to unsubscribe with code
