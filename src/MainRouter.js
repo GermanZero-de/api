@@ -1,3 +1,4 @@
+const fs = require('fs')
 const path = require('path')
 const express = require('express')
 const swaggerUi = require('swagger-ui-express')
@@ -51,11 +52,22 @@ module.exports = (adapters, controller, auth, logger) => {
     return {httpStatus: 201}
   }
 
+  function getInfo() {
+    const commitInfo = fs.readFileSync(path.resolve(__dirname, '..', 'info.txt')).toString().split('\n').filter(line => line)
+    return {
+      commitId: commitInfo[0].match(/\s+(.*)/)[1],
+      author: commitInfo[1].match(/\s+(.*)/)[1],
+      date: commitInfo[2].match(/\s+(.*)/)[1],
+      message: commitInfo.slice(3).map(line => line.trim()).join('\n')
+    }
+  }
+
   const router = express.Router()
   const oas3Document = YAML.load(path.resolve(__dirname, '..', 'openapi.yaml'))
 
   router.use('/api-ui', swaggerUi.serve, swaggerUi.setup(oas3Document))
   router.get('/', (req, res) => res.redirect('api-ui'))
+  router.get('/info', (req, res) => res.json({commitInfo: getInfo()}))
   
   router.post('/subscriptions', nocache, jsonHandlerFor(req => controller.registerForNewsletter(req.body)))
   router.post('/members', nocache, jsonHandlerFor(req => controller.registerAsVolunteer(req.body)))

@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node src",
     "lint": "eslint src",
-    "test": "nyc mocha test"
+    "test": "nyc mocha test",
+    "update-version": "git show -s >info.txt; git add info.txt"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,13 @@
     "eslint": "^6.6.0",
     "mocha": "^6.2.2",
     "nyc": "^14.1.1",
+    "pre-commit": "^1.2.2",
     "should": "^13.2.3",
     "supertest": "^4.0.2"
-  }
+  },
+  "pre-commit": [
+    "lint",
+    "test",
+    "update-version"
+  ]
 }

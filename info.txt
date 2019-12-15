@@ -1,0 +1,5 @@
+commit 7c0c839614719519376b72d2b3c4cbee271e777f
+Author: Joachim Schirrmacher <j.schirrmacher@justso.de>
+Date:   Sun Dec 15 12:51:37 2019 +0100
+
+    Added info route
