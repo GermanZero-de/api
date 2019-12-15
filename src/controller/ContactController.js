@@ -18,17 +18,22 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
   }
 
   return {
-    registerContact(contact, isMember) {
+    registerForNewsletter(contact) {
       assert(contact.email && contact.email.match(/.+@.+\.\w+/), `email field doesn't look like an email`)
-      if (isMember) {
-        assert(contact.firstName, `Field 'firstName' is required`)
-        assert(contact.lastName, `Field 'lastName' is required`)
-      } else {
-        assert(contact.postalCode, `Field 'postalCode' is required`)
-      }
+      assert(contact.postalCode, `Field 'postalCode' is required`)
       if (models.contacts.getByEmail(contact.email)) {
         throw {httpStatus: 409, message: 'A contact with this email address already exists'}
       }
+      contact.tag = 'Newsletter'
+      store.add({type: 'contact-requested', contact})
+      return {httpStatus: 202}
+    },
+
+    registerAsVolunteer(contact) {
+      assert(contact.email && contact.email.match(/.+@.+\.\w+/), `email field doesn't look like an email`)
+      assert(contact.firstName, `Field 'firstName' is required`)
+      assert(contact.lastName, `Field 'lastName' is required`)
+      contact.tag = 'Volunteer'
       store.add({type: 'contact-requested', contact})
       return {httpStatus: 202}
     },

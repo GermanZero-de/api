@@ -9,6 +9,7 @@ const fieldMapping = {
   street_address: 'streetAddress',
   postal_code: 'postalCode',
   city: 'city',
+  country: 'country',
   is_opt_out: 'is_opt_out'
 }
 

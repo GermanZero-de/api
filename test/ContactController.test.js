@@ -20,11 +20,6 @@ const testContact = {
   postalCode: '10000'
 }
 
-const obligatoryFields = {
-  subscription: ['email', 'postalCode'],
-  member: ['email', 'firstName', 'lastName']
-}
-
 describe('ContactController', () => {
   let controller
   let store
@@ -38,17 +33,21 @@ describe('ContactController', () => {
     controller = require('../src/controller/ContactController')(store, models, adapters.CiviCRMAdapter, mailSender, config)
   })
 
-  describe('createContact', () => {
-    Object.keys(obligatoryFields).forEach(type => {
-      obligatoryFields[type].forEach(key => {
-        it(`should moan if '${key}' is invalid in a ${type}`, () => {
-          const contact = JSON.parse(JSON.stringify(testContact))
-          delete contact[key]
-          const msg = key === 'email' ? `email field doesn't look like an email` : `Field '${key}' is required`
-          ;(() => controller.registerContact(contact, type === 'member')).should.throw(msg)
-        })
-      })
+  function assertFieldIsValid(field, func) {
+    it(`should moan if '${field}' is invalid`, () => {
+      const contact = JSON.parse(JSON.stringify(testContact))
+      delete contact[field]
+      const msg = field === 'email' ? `email field doesn't look like an email` : `Field '${field}' is required`
+      ;(() => func(contact)).should.throw(msg)
     })
+  }
+
+  describe('registerForNewsletter', () => {
+    ['email', 'postalCode'].forEach(field => assertFieldIsValid(field, contact => controller.registerForNewsletter(contact)))
+  })
+
+  describe('registerAsVolunteer', () => {
+    ['email', 'firstName', 'lastName'].forEach(field => assertFieldIsValid(field, contact => controller.registerAsVolunteer(contact)))
   })
 
   describe('mailchimp-webhook', () => {
