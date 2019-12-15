@@ -72,6 +72,7 @@ module.exports = (adapters, controller, auth, logger) => {
   router.post('/subscriptions', nocache, jsonHandlerFor(req => controller.registerForNewsletter(req.body)))
   router.post('/members', nocache, jsonHandlerFor(req => controller.registerAsVolunteer(req.body)))
   router.get('/contacts/:id/confirmations/:code', jsonHandlerFor(req => controller.confirmRegistration(req.params.id, req.params.code)))
+  router.get('/contacts/:id/unsubscribe/:code', jsonHandlerFor(req => controller.unsubscribe(req.params.id, req.params.code)))
   router.post('/contacts/mc-webhooks/:code', jsonHandlerFor(req => controller.mailChimpWebhook(req.params.code, req.body)))
 
   router.post('/session', nocache, jsonHandlerFor(req => auth.login(req.body)))

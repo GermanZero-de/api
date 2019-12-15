@@ -17,6 +17,11 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
     }
   }
 
+  async function doUnsubscribe(contact) {
+    store.add({type: 'contact-unsubscribe', contactId: +contact.id, contact})
+    await CiviCRMAdapter.updateContact(+contact.id, {is_opt_out: '1'})
+  }
+
   return {
     registerForNewsletter(contact) {
       assert(contact.email && contact.email.match(/.+@.+\.\w+/), `email field doesn't look like an email`)
@@ -42,7 +47,7 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
       try {
         const contact = await CiviCRMAdapter.createContact({...data, is_opt_out: '1'})
         const code = encrypt(contact.id)
-        const link = config.baseUrl + `/contacts/${contact.id}/confirmations/${code}`
+        const link = config.apiUrl + `/contacts/${contact.id}/confirmations/${code}`
         await MailSender.send(data.email, 'GermanZero: Bestätigung', 'verificationMail', {link, contact})
         store.add({type: 'contact-created', contact: {...data, id: contact.id}, code})
       } catch (error) {
@@ -63,7 +68,8 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
       try {
         const contact = await CiviCRMAdapter.updateContact(+contactId, {is_opt_out: '0'})
         const model = models.contacts.getById(contactId)
-        await MailSender.send(model.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', contact)
+        const unsubscribe = config.apiUrl + `/contacts/${contact.id}/unsubscribe/${encrypt(model.id)}`
+        await MailSender.send(model.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', {unsubscribe, contact})
         store.add({type: 'confirmation-completed', contactId})
       } catch (error) {
         return {httpStatus: 500, message: '' + error, stack: error.stack}
@@ -81,9 +87,19 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
       if (!contact) {
         return {httpStatus: 404, message: 'Unknown contact'}
       }
-      store.add({type: 'contact-unsubscribe', contactId: +contact.id, data})
-      await CiviCRMAdapter.updateContact(+contact.id, {is_opt_out: '1'})
+      doUnsubscribe(contact)
       return {}
+    },
+
+    async unsubscribe(id, code) {
+      if (verifyCode(id, code)) {
+        const contact = models.contacts.getById(id)
+        if (contact) {
+          doUnsubscribe(contact)
+          return new Redirection(config.baseUrl + '/unsubscribe-confirmed')
+        }
+      }
+      return new Redirection(config.baseUrl + '/invalid-unsubscribe')
     }
   }
 }

@@ -32,6 +32,7 @@ const config = {
   port: process.env.PORT || 3000,
   host: process.env.HOST,
   baseUrl: process.env.BASEURL,
+  apiUrl: process.env.APIURL || process.env.BASEURL,
   key: Buffer.from(process.env.KEY, 'hex'),
   iv: Buffer.from(process.env.IV, 'hex')
 }

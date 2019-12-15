@@ -12,6 +12,7 @@ const fetch = require('./MockFetch')(logger, {
 })
 const mailSender = require('./MockMailSender')(logger)
 const adapters = require('../src/adapters')(fetch, config)
+const {encrypt} = require('../src/Encoder')(config)
 
 const testContact = {
   email: 'janedoe@example.com',
@@ -74,6 +75,37 @@ describe('ContactController', () => {
         'data[email]': 'janedoe@example.com'
       })
       logger.log[0].debug.fetch.url.should.match(/%7B%22is_opt_out%22%3A%221%22%7D&entity=contact&action=update&id=4711/)
+    })
+  })
+
+  describe('unsubscribe', () => {
+    it('should reject accesses with wrong code', async () => {
+      const result = await controller.unsubscribe('4711', 'wrong-code')
+      result.should.have.property('redirect')
+      result.redirect.should.equal('https://test-server/invalid-unsubscribe')
+    })
+
+    it('should reject unsubscribes for unknown contacts', async () => {
+      const result = await controller.unsubscribe('4711', 'wrong-code')
+      result.should.have.property('redirect')
+      result.redirect.should.equal('https://test-server/invalid-unsubscribe')
+    })
+
+    async function unsubscribeWithValidCode() {
+      await store.add({type: 'contact-requested', contact: testContact})
+      await store.add({type: 'contact-created', contact: {id: '4711', ...testContact}})
+      return controller.unsubscribe('4711', encrypt('4711'))
+    }
+
+    it('should set opt-out when unsubscribe is called', async () => {
+      await unsubscribeWithValidCode()
+      logger.log[0].debug.fetch.url.should.match(/%7B%22is_opt_out%22%3A%221%22%7D&entity=contact&action=update&id=4711/)
+    })
+
+    it('should redirect if unsubscribe is called', async () => {
+      const result = await unsubscribeWithValidCode()
+      result.should.have.property('redirect')
+      result.redirect.should.equal('https://test-server/unsubscribe-confirmed')
     })
   })
 })

@@ -56,7 +56,7 @@ paths:
 
   /contacts/:contactId/confirmations/:code:
     get:
-      summary: 'Marks the email address of the contact as confirmed'
+      summary: Marks the email address of the contact as confirmed
       description: Contacts are firstly created opted out from mailings to comply with GDPR. A first email is sent then, containing a confirmation link which is this route.
       parameters:
         - in: path
@@ -72,6 +72,25 @@ paths:
       responses:
         '302':
           description: Contact is confirmed, redirect to /contact-confirmed page. In case of an invalid code, the contact is not confirmed and the redirection goes to /invalid-confirmation page
+
+  /contacts/:id/unsubscribe/:code:
+    get:
+      summary: Unsubscribe a contact
+      description: This is the link generated in e-mail footers to unsubscribe. It contains a code to prevent misuse.
+      parameters:
+        - in: path
+          name: contactId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Contact is unsubscribed, redirect to /unsubscribe-confirmed page. In case of an invalid code, the contact is not unsubscribed and the redirection goes to /invalid-unsubscribe page
 
   /contacts/mc-webhooks/:code:
     post:

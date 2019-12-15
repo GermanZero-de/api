@@ -7,7 +7,9 @@
 
     <p class="disclaimer">
         Wir senden diese E-Mail, weil du dich auf {{config.host}} registriert hast.
+        {{#if unsubscribe}}
         Wir werden dich auch weiterhin mit Informationen versorgen, wenn du dem nicht widersprichst.
-        Dazu einfach <a href="{{{config.baseUrl}}}/unsubscribe">hier klicken</a>.
+        Dazu einfach <a href="{{unsubscribe}}">hier klicken</a>.
+        {{/if}}
     </p>
 </footer>

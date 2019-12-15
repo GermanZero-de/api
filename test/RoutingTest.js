@@ -23,7 +23,7 @@ function crmCmd(action, entity, json, additional) {
 const expectedFetchResults = {
   [crmCmd('create', 'contact', {contact_type: 'Individual', first_name: 'John', last_name: 'Doe', email: 'johndoe@example.com', postal_code: 10000, is_opt_out: '1'})]: okResult({values: {'4711': {id:'4711'}}}),
   [crmCmd('get', 'contact', 1, 'email=johndoe%40example.com')]: okResult({values: {}}),
-  [crmCmd('update', 'contact', {is_opt_out: '0'}, 'id=4711')]: okResult({values: [{email: 'johndoe@example.com'}]})
+  [crmCmd('update', 'contact', {is_opt_out: '0'}, 'id=4711')]: okResult({values: [{id: 4711, email: 'johndoe@example.com'}]})
 }
 
 const log = []
