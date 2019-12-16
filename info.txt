@@ -1,5 +1,5 @@
-commit ea34daece8e2f8a7e7e48473dcd1c2c0d38712f7
+commit 8c7cf157f0252404bbbea5ebe16cee20da7fa97a
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Sun Dec 15 15:41:09 2019 +0100
+Date:   Mon Dec 16 02:58:47 2019 +0100
 
-    Added info file
+    Validate contact fields

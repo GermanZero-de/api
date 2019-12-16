@@ -5,9 +5,14 @@ module.exports = (fetch, config) => {
   const baseUrl = 'https://' + config.mailchimp.apiKey.replace(/.*-(\w+)$/, '$1') + '.api.mailchimp.com/3.0'
   const authorization = 'Basic ' + btoa('x:' + config.mailchimp.apiKey)
 
-  function fetchFromMC(path, options = {}) {
+  async function fetchFromMC(path, options = {}) {
     options.headers = Object.assign({}, options.headers, {authorization})
-    return fetch(baseUrl + path, options)
+    const response = await fetch(baseUrl + path, options)
+    const content = response.headers['content-type'].match(/json/) ? await response.json() : await response.text()
+    if (response.ok) {
+      return content
+    }
+    throw content
   }
 
   function md5(data) {
