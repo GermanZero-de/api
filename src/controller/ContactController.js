@@ -1,4 +1,5 @@
 const Redirection = require('../Redirection')
+const {getKnownGenders, getKnownTitles} = require('../mapper/CrmMapper')
 
 module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
   const {encrypt, decrypt} = require('../Encoder')(config)
@@ -29,8 +30,7 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
       if (models.contacts.getByEmail(contact.email)) {
         throw {httpStatus: 409, message: 'A contact with this email address already exists'}
       }
-      contact.tag = 'Newsletter'
-      store.add({type: 'contact-requested', contact})
+      store.add({type: 'contact-requested', contact: {email: contact.email, postalCode: contact.postalCode, tags: ['Newsletter']}})
       return {httpStatus: 202}
     },
 
@@ -38,7 +38,9 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
       assert(contact.email && contact.email.match(/.+@.+\.\w+/), `email field doesn't look like an email`)
       assert(contact.firstName, `Field 'firstName' is required`)
       assert(contact.lastName, `Field 'lastName' is required`)
-      contact.tag = 'Volunteer'
+      assert(!contact.gender || getKnownGenders.includes(contact.gender), `Field 'gender' contains an invalid value`)
+      assert(!contact.title || getKnownTitles.includes(contact.title), `Field 'title' contains an invalid value`)
+      contact.tags = ['Volunteer']
       store.add({type: 'contact-requested', contact})
       return {httpStatus: 202}
     },

@@ -15,47 +15,17 @@ function okResult(data) {
   return {ok: true, status: 200, headers: {'content-type': jsonContentType}, json: () => data}
 }
 
-const crmUrl = 'https://civicrm/sites/all/modules/civicrm/extern/rest.php'
-function crmCmd(action, entity, json, additional) {
-  return `POST ${crmUrl}?key=site-key&api_key=api-key&json=${encodeURIComponent(JSON.stringify(json))}&entity=${entity}&action=${action}${additional ? '&' + additional : ''}`
-}
+const logger = require('./MockLogger')
 
-const expectedFetchResults = {
-  [crmCmd('create', 'contact', {contact_type: 'Individual', first_name: 'John', last_name: 'Doe', email: 'johndoe@example.com', postal_code: 10000, is_opt_out: '1'})]: okResult({values: {'4711': {id:'4711'}}}),
-  [crmCmd('get', 'contact', 1, 'email=johndoe%40example.com')]: okResult({values: {}}),
-  [crmCmd('update', 'contact', {is_opt_out: '0'}, 'id=4711')]: okResult({values: [{id: 4711, email: 'johndoe@example.com'}]})
-}
-
-const log = []
-const addToLog = (msg) => log.push({type: 'log', msg})
-const logger = {
-  info(msg) {addToLog('INFO: ' + msg)},
-  warn(msg) {addToLog('WARN: ' + msg)},
-  error(msg) {addToLog('ERROR: ' + msg)},
-  debug(msg) {addToLog('DEBUG: ' + msg)},
-  logExpressRequests: () => {},
-  logExpressErrors: (app) => app.use((err, req, res, next) => {
-    log.push({type: 'express', msg: 'ERROR: ' + err.toString()})
-    next()
-  })
-}
-
-const fetch = async (url, options) => {
-  log.push({type: 'fetch', url, options})
-  const path = (options.method || 'GET').toUpperCase() + ' ' + url
-  return expectedFetchResults[path] || { status: 404 }
-}
-
-const testUser = {
-  firstName: 'John',
-  lastName: 'Doe',
-  email: 'johndoe@example.com',
-  postalCode: 10000
-}
+const fetch = require('./MockFetch')(logger, {
+  '^POST https://civicrm/.*&entity=contact&action=get&email=johndoe%40example.com': okResult({values: {}}),
+  '^POST https://civicrm/.*&entity=contact&action=create': okResult({values: {'4711': {id:'4711'}}}),
+  '^POST https://civicrm/.*&entity=contact&action=update&id=4711': okResult({values: [{d: 4711, email: 'johndoe@example.com'}]})
+})
 
 const mailSender = {
   send(to, subject, template, data) {
-    log.push({type: 'mail', info: {to, subject, template, data}})
+    logger.debug({mail: {to, subject, template, data}})
   }
 }
 
@@ -70,7 +40,7 @@ let store
 
 describe('RoutingTest', () => {
   beforeEach(() => {
-    log.length = 0
+    logger.reset()
     fs.unlinkSync(path.resolve(__dirname, 'events-0.json'))
     store = new EventStore({basePath: __dirname, logger})
     models = ModelsFactory({store, config})
@@ -83,7 +53,7 @@ describe('RoutingTest', () => {
     app.use(mainRouter)
     app.use((error, req, res, next) => {
       res.status(error.status || 500).json({error})
-      log.push({type: 'express', error, path: req.method + ' ' + req.path})
+      logger.debug({type: 'express', error, path: req.method + ' ' + req.path})
       next()
     })        
   })
@@ -97,15 +67,20 @@ describe('RoutingTest', () => {
   })
   
   describe('POST /subscriptions', () => {
+    const testUser = {
+      email: 'johndoe@example.com',
+      postalCode: 10000
+    }
+        
     it('should create a contact in the CRM marked as "opt_out"', async () => {
       await request(app).post('/subscriptions')
         .set('cotent-type', 'application/json')
         .send(testUser)
       await worker(models, controller, logger, {setTimeout: noop})
-      const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/civicrm\/.*entity=contact&action=create/))
-      log[index].url.should.startWith(crmUrl)
-      log[index].url.should.match(/%22is_opt_out%22%3A%221%22/)
-      log[index].options.method.should.equal('POST')
+      const entry = logger.log.find(entry => entry.debug && entry.debug.fetch && entry.debug.fetch.url.match(/^https:\/\/civicrm\/.*entity=contact&action=create/))
+      entry.debug.fetch.url.should.startWith('https://civicrm/sites/all/modules/civicrm/extern/rest.php')
+      entry.debug.fetch.url.should.match(/%22is_opt_out%22%3A%221%22/)
+      entry.debug.fetch.options.method.should.equal('POST')
     })
   
     it('should send a confirmation email', async () => {
@@ -113,14 +88,21 @@ describe('RoutingTest', () => {
         .set('cotent-type', 'application/json')
         .send(testUser)
       await worker(models, controller, logger, {setTimeout: noop})
-      const mail = log.find(entry => entry.type === 'mail')
-      mail.info.should.containDeep({to: testUser.email, subject: 'GermanZero: Bestätigung', template: 'verificationMail'})
-      mail.info.data.should.have.property('link')
-      mail.info.data.should.have.property('contact')
+      const mail = logger.log.find(entry => entry.debug && entry.debug.mail)
+      mail.debug.mail.should.containDeep({to: testUser.email, subject: 'GermanZero: Bestätigung', template: 'verificationMail'})
+      mail.debug.mail.data.should.have.property('link')
+      mail.debug.mail.data.should.have.property('contact')
     })
   })
   
   describe('GET /conctacts/:contactId/confirmations/:code', () => {
+    const testUser = {
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'johndoe@example.com',
+      postalCode: 10000
+    }
+        
     beforeEach(() => {
       store.add({type: 'contact-requested', contact: testUser})
       store.add({type: 'contact-created', contact: {id: '4711', ...testUser}})
@@ -129,15 +111,15 @@ describe('RoutingTest', () => {
     it('should set the status of a contact to "opt_in"', async () => {
       await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960b')
       await worker(models, controller, logger, {setTimeout: noop})
-      const index = log.findIndex(entry => entry.type === 'fetch' && entry.url.match(/^https:\/\/civicrm\/.*entity=contact&action=update/))
-      log[index].url.should.match(/%22is_opt_out%22%3A%220%22/)
+      const entry = logger.log.find(entry => entry.debug && entry.debug.fetch && entry.debug.fetch.url.match(/^https:\/\/civicrm\/.*entity=contact&action=update/))
+      entry.debug.fetch.url.should.match(/%22is_opt_out%22%3A%220%22/)
     })
   
     it('should send a welcome mail', async () => {
       await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960b')
       await worker(models, controller, logger, {setTimeout: noop})
-      const mail = log.find(entry => entry.type === 'mail')
-      mail.info.should.containDeep({to: testUser.email, subject: 'GermanZero: E-Mail Adresse ist bestätigt', template: 'welcomeMail'})
+      const mail = logger.log.find(entry => entry.debug && entry.debug.mail)
+      mail.debug.mail.should.containDeep({to: testUser.email, subject: 'GermanZero: E-Mail Adresse ist bestätigt', template: 'welcomeMail'})
     })
   
     it('should redirect to confirmation ok page', async () => {

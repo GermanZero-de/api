@@ -44,5 +44,13 @@ module.exports = {
     setFieldIfNotEmpty(result, 'title', titles[result.title - 1])
     setFieldIfNotEmpty(result, 'gender', genders[result.gender - 1])
     return result
+  },
+
+  getKnownGenders() {
+    return genders
+  },
+
+  getKnownTitles() {
+    return titles
   }
 }
