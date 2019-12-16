@@ -1,5 +1,5 @@
-commit 8c7cf157f0252404bbbea5ebe16cee20da7fa97a
+commit 5426a7f758a79f03ab895ab0755756667a41ec39
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Mon Dec 16 02:58:47 2019 +0100
+Date:   Mon Dec 16 10:22:07 2019 +0100
 
-    Validate contact fields
+    Adapted to standard node-fetch behaviour

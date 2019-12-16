@@ -1,7 +1,7 @@
 const Redirection = require('../Redirection')
 const {getKnownGenders, getKnownTitles} = require('../mapper/CrmMapper')
 
-module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
+module.exports = (store, models, adapters, MailSender, config) => {
   const {encrypt, decrypt} = require('../Encoder')(config)
 
   function verifyCode(id, code) {
@@ -20,7 +20,7 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
 
   async function doUnsubscribe(contact) {
     store.add({type: 'contact-unsubscribe', contactId: +contact.id, contact})
-    await CiviCRMAdapter.updateContact(+contact.id, {is_opt_out: '1'})
+    await adapters.CiviCRMAdapter.updateContact(+contact.id, {is_opt_out: '1'})
   }
 
   return {
@@ -47,7 +47,7 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
 
     async doContactRegistration(data) {
       try {
-        const contact = await CiviCRMAdapter.createContact({...data, is_opt_out: '1'})
+        const contact = await adapters.CiviCRMAdapter.createContact({...data, is_opt_out: '1'})
         const code = encrypt(contact.id)
         const link = config.apiUrl + `/contacts/${contact.id}/confirmations/${code}`
         await MailSender.send(data.email, 'GermanZero: Bestätigung', 'verificationMail', {link, contact})
@@ -68,7 +68,11 @@ module.exports = (store, models, CiviCRMAdapter, MailSender, config) => {
 
     async doConfirmRegistration(contactId) {
       try {
-        const contact = await CiviCRMAdapter.updateContact(+contactId, {is_opt_out: '0'})
+        const contact = await adapters.CiviCRMAdapter.updateContact(+contactId, {is_opt_out: '0'})
+        await adapters.MailChimpAdapter.addSubscriber(contact)
+        if (contact.tags) {
+          await adapters.MailChimpAdapter.addTags(contact, contact.tags)
+        }
         const model = models.contacts.getById(contactId)
         const unsubscribe = config.apiUrl + `/contacts/${contact.id}/unsubscribe/${encrypt(model.id)}`
         await MailSender.send(model.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', {unsubscribe, contact})

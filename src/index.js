@@ -9,9 +9,9 @@ const worker = require('./worker')
 
 const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), logger})
 const models = require('./readModels')({store, config})
-const crmAdapter = require('./adapters/CiviCRMAdapter')(fetch, config)
+const adapters = require('./adapters')(fetch, config)
 const mailSender = require('./MailSender')(logger, config)
-const controller = require('./controller/ContactController')(store, models, crmAdapter, mailSender, config)
+const controller = require('./controller/ContactController')(store, models, adapters, mailSender, config)
 
 worker(models, controller, logger)
 

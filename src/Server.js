@@ -5,8 +5,7 @@ const cors = require('cors')
 module.exports = (store, models, logger, fetch, mailSender, config) => {
   const auth = require('./auth')(fetch, logger)
   const adapters = require('./adapters')(fetch, config)
-  const controller = require('./controller/ContactController')(store, models, adapters.crm, mailSender, config)
-
+  const controller = require('./controller/ContactController')(store, models, adapters.CiviCRMAdapter, adapters.MailChimpAdapter, mailSender, config)
   const mainRouter = require('./MainRouter')(adapters, controller, auth, logger)
   const app = express()
 

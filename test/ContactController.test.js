@@ -31,7 +31,7 @@ describe('ContactController', () => {
     fs.writeFileSync(path.resolve(__dirname, 'events-0.json'), '')
     store = new EventStore({basePath: __dirname, logger})
     models = ModelsFactory({store, config})
-    controller = require('../src/controller/ContactController')(store, models, adapters.CiviCRMAdapter, mailSender, config)
+    controller = require('../src/controller/ContactController')(store, models, adapters, mailSender, config)
   })
 
   function assertFieldIsValid(field, func) {
