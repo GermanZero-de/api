@@ -200,6 +200,9 @@ components:
           type: string
         city:
           type: string
+        newsletter:
+          type: boolean
+          description: should be non-empty to register new members for the newsletter as well. This parameter is implicitly assumed on /subscriptions, because it is the reason to subscribe.
 
     user:
       title: user

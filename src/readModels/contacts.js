@@ -14,7 +14,7 @@ module.exports = function () {
           assert(event.contact, 'No contact information in event')
           assert(event.contact.email, 'Missing email address')
           assert(!contacts.byEmail[event.contact.email], 'Contact already exists')
-          contacts.byEmail[event.contact.email] = {email: event.contact.email}
+          contacts.byEmail[event.contact.email] = event.contact
           requests.push({type: 'create-contact', contact: event.contact})
           break
 

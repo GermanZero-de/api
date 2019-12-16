@@ -41,6 +41,9 @@ module.exports = (store, models, adapters, MailSender, config) => {
       assert(!contact.gender || getKnownGenders.includes(contact.gender), `Field 'gender' contains an invalid value`)
       assert(!contact.title || getKnownTitles.includes(contact.title), `Field 'title' contains an invalid value`)
       contact.tags = ['Volunteer']
+      if (contact.newsletter) {
+        contact.tags.push('Newsletter')
+      }
       store.add({type: 'contact-requested', contact})
       return {httpStatus: 202}
     },
@@ -68,7 +71,8 @@ module.exports = (store, models, adapters, MailSender, config) => {
 
     async doConfirmRegistration(contactId) {
       try {
-        const contact = await adapters.CiviCRMAdapter.updateContact(+contactId, {is_opt_out: '0'})
+        const contact = models.contacts.getById(contactId)
+        await adapters.CiviCRMAdapter.updateContact(+contactId, {is_opt_out: '0'})
         await adapters.MailChimpAdapter.addSubscriber(contact)
         if (contact.tags) {
           await adapters.MailChimpAdapter.addTags(contact, contact.tags)

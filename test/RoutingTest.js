@@ -109,7 +109,8 @@ describe('RoutingTest', () => {
       firstName: 'John',
       lastName: 'Doe',
       email: 'johndoe@example.com',
-      postalCode: 10000
+      postalCode: 10000,
+      tags: ['Newsletter']
     }
         
     beforeEach(() => {
@@ -144,10 +145,18 @@ describe('RoutingTest', () => {
     it('should add new contacts to MailChimp', async () => {
       await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960b')
       await worker(models, controller, logger, {setTimeout: noop})
-      const entries = getFromLog('debug', 'fetch').filter(entry => entry.url.match(/mailchimp/))
+      const entries = getFromLog('debug', 'fetch').filter(entry => entry.url.match(/mailchimp.*lists\/mc-list\/members/))
       entries.length.should.equal(1)
-      entries[0].url.should.match(/lists\/mc-list\/members\/fd876f8cd6a58277fc664d47ea10ad19/)
-      entries[0].options.should.containDeep({method: 'put', body: JSON.stringify({email_address: 'johndoe@example.com', merge_fields: {}, status: 'subscribed'})})
+      entries[0].url.should.match(/\/fd876f8cd6a58277fc664d47ea10ad19$/)
+      entries[0].options.should.containDeep({method: 'put', body: JSON.stringify({email_address: 'johndoe@example.com', merge_fields: {FNAME: 'John', LNAME: 'Doe'}, status: 'subscribed'})})
+    })
+
+    it('should add tags when adding contacts to MailChimp', async () => {
+      await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960b')
+      await worker(models, controller, logger, {setTimeout: noop})
+      const entries = getFromLog('debug', 'fetch').filter(entry => entry.url.match(/mailchimp.*lists\/mc-list\/segments/) && entry.options.method === 'POST')
+      entries.length.should.equal(1)
+      entries[0].options.body.should.equal(JSON.stringify({name: 'Newsletter', static_segment: ['johndoe@example.com']}))
     })
   })
 })

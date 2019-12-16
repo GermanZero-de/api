@@ -1,5 +1,5 @@
-commit 5426a7f758a79f03ab895ab0755756667a41ec39
+commit 0059b48f1194f5fddd3de5fb0d07bb31a09e24fe
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Mon Dec 16 10:22:07 2019 +0100
+Date:   Mon Dec 16 12:38:12 2019 +0100
 
-    Adapted to standard node-fetch behaviour
+    Add new contacts to MailChimp
