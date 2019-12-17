@@ -1,5 +1,5 @@
-commit a65f162eaff3934181181671a9c932e076afaaef
+commit 0ccbb06370d8723039fcc7a3e674a640462fe63c
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 17 10:28:46 2019 +0100
+Date:   Tue Dec 17 11:06:20 2019 +0100
 
-    Fixed: sending confirmations multiple times when an confirmation already exists
+    Feature: Individual email text for volunteer registration
