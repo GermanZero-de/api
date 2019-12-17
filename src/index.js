@@ -9,13 +9,15 @@ const worker = require('./worker')
 
 const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), logger})
 const models = require('./readModels')({store, config})
-const adapters = require('./adapters')(fetch, config)
+const adapters = require('./adapters')(fetch, config, logger)
 const mailSender = require('./MailSender')(logger, config)
 const controller = require('./controller/ContactController')(store, models, adapters, mailSender, config)
+const auth = require('./auth')(fetch, logger)
+const mainRouter = require('./MainRouter')(adapters, controller, auth, logger)
 
 const workerInstance = worker(models, controller, logger)
 
-const app = Server(store, models, logger, fetch, mailSender, config)
+const app = Server(mainRouter, logger, config)
 const server = app.listen(config.port, async () => {
   await models.isReady
   logger.info(`Running on http://localhost:${config.port} in ${config.nodeenv} mode`)
