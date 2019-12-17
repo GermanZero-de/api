@@ -1,5 +1,5 @@
-commit afc8b83d764cb9e9e44c5ef1af0a74c2399ed2bb
+commit 34f8faffb8306327779f17a265d3ef757157f1bb
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Mon Dec 16 13:26:11 2019 +0100
+Date:   Tue Dec 17 09:45:32 2019 +0100
 
-    MailChimp tags
+    Fixed wrong initialisation of ContactController which caused confirmation redirections to fail

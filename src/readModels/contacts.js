@@ -25,7 +25,7 @@ module.exports = function () {
           assert(contacts.byEmail[event.contact.email], 'Unknown contact')
           contacts.byEmail[event.contact.email].id = event.contact.id
           contacts.byId[event.contact.id] = contacts.byEmail[event.contact.email]
-          requests.splice(requests.findIndex(r => r.contact.email === event.contact.email), 1)
+          requests.splice(requests.findIndex(r => r.type === 'create-contact' && r.contact.email === event.contact.email), 1)
           break
 
         case 'confirmation-requested':
