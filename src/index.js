@@ -13,7 +13,7 @@ const adapters = require('./adapters')(fetch, config)
 const mailSender = require('./MailSender')(logger, config)
 const controller = require('./controller/ContactController')(store, models, adapters, mailSender, config)
 
-worker(models, controller, logger)
+const workerInstance = worker(models, controller, logger)
 
 const app = Server(store, models, logger, fetch, mailSender, config)
 const server = app.listen(config.port, async () => {
@@ -21,11 +21,11 @@ const server = app.listen(config.port, async () => {
   logger.info(`Running on http://localhost:${config.port} in ${config.nodeenv} mode`)
 })
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   logger.info('SIGTERM signal received.')
   server.close(async () => {
     logger.info('http server closed')
-    worker.close()
+    ;(await workerInstance).close()
     logger.info('worker terminated')
     store.end()
     logger.info('event stream ended')

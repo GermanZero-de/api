@@ -1,5 +1,5 @@
-commit 6c85d6cc18fbff54bd3d9789288ae3a0d9357580
+commit 8eeca3ded5d0d3612f2b8bb49abbd4da7d363b18
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 17 11:20:02 2019 +0100
+Date:   Tue Dec 17 11:43:17 2019 +0100
 
-    Fix handle missing http headers from MailChimp
+    Fix: prevented worker to run for an additional try after shutdown
