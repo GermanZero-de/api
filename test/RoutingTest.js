@@ -103,7 +103,30 @@ describe('RoutingTest', () => {
       mail.data.should.have.property('contact')
     })
   })
-  
+
+  describe('/POST members', () => {
+    const testUser = {
+      email: 'johndoe@example.com',
+      firstName: 'John',
+      lastName: 'Doe',
+    }
+
+    async function addTestUser() {
+      await request(app).post('/members')
+        .set('cotent-type', 'application/json')
+        .send(testUser)
+      await worker(models, controller, logger, {setTimeout: noop})
+    }
+        
+    it('should send a special confirmation mail for volunteers', async () => {
+      await addTestUser()
+      const mail = getFromLog('debug', 'mail')[0]
+      mail.should.containDeep({to: testUser.email, subject: 'GermanZero: Bestätigung', template: 'verificationVolunteerMail'})
+      mail.data.should.have.property('link')
+      mail.data.should.have.property('contact')
+    })
+  })
+
   describe('GET /conctacts/:contactId/confirmations/:code', () => {
     const testUser = {
       firstName: 'John',

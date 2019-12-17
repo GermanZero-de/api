@@ -53,7 +53,8 @@ module.exports = (store, models, adapters, MailSender, config) => {
         const contact = await adapters.CiviCRMAdapter.createContact({...data, is_opt_out: '1'})
         const code = encrypt(contact.id)
         const link = config.apiUrl + `/contacts/${contact.id}/confirmations/${code}`
-        await MailSender.send(data.email, 'GermanZero: Bestätigung', 'verificationMail', {link, contact})
+        const template = data.tags && data.tags.includes('Volunteer') ? 'verificationVolunteerMail' : 'verificationMail'
+        await MailSender.send(data.email, 'GermanZero: Bestätigung', template, {link, contact})
         store.add({type: 'contact-created', contact: {...data, id: contact.id}, code})
       } catch (error) {
         return {httpStatus: 500, message: '' + error, stack: error.stack}
