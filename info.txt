@@ -1,5 +1,5 @@
-commit 0ccbb06370d8723039fcc7a3e674a640462fe63c
+commit 6c85d6cc18fbff54bd3d9789288ae3a0d9357580
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 17 11:06:20 2019 +0100
+Date:   Tue Dec 17 11:20:02 2019 +0100
 
-    Feature: Individual email text for volunteer registration
+    Fix handle missing http headers from MailChimp
