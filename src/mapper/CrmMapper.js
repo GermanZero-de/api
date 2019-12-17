@@ -14,7 +14,7 @@ const fieldMapping = {
 }
 
 const genders = ['female', 'male', 'other']
-const titles = ['Dr.', 'Prof.']
+const titles = ['Dr.', 'Prof.', 'Dr. Dr.', 'Prof. Dr.', 'Prof. Dr. Dr.']
 
 function lookup(list, value) {
   return value && list.findIndex(e => e === value) + 1
