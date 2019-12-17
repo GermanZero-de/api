@@ -34,7 +34,9 @@ module.exports = (fetch, config) => {
           const body = JSON.stringify({email_address: person.email})
           return fetchFromMC(`${segmentPath}/${segment.id}/members`, {method, body})
         }
-      }))
+      })).catch(error => {
+        throw error
+      })
     },
   
     async addSubscriber(person) {
