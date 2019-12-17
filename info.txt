@@ -1,5 +1,5 @@
-commit 0059b48f1194f5fddd3de5fb0d07bb31a09e24fe
+commit afc8b83d764cb9e9e44c5ef1af0a74c2399ed2bb
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Mon Dec 16 12:38:12 2019 +0100
+Date:   Mon Dec 16 13:26:11 2019 +0100
 
-    Add new contacts to MailChimp
+    MailChimp tags
