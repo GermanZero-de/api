@@ -1,5 +1,5 @@
-commit 34f8faffb8306327779f17a265d3ef757157f1bb
+commit a65f162eaff3934181181671a9c932e076afaaef
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 17 09:45:32 2019 +0100
+Date:   Tue Dec 17 10:28:46 2019 +0100
 
-    Fixed wrong initialisation of ContactController which caused confirmation redirections to fail
+    Fixed: sending confirmations multiple times when an confirmation already exists
