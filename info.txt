@@ -1,5 +1,5 @@
-commit 7cda9a2f06d4b22580ad06f0448d34129a182119
+commit d920ac8000157efa01894d3c84316fb41ae6b8b5
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 17 15:24:25 2019 +0100
+Date:   Tue Dec 17 16:36:19 2019 +0100
 
-    Fixed handling of 'gender' and 'title' fields
+    Simulate CRM if not configured. Fixed handling of http headers from MailChimp. Fixed returning correct http status codes
