@@ -3,6 +3,6 @@ module.exports = (logger, expectedFetchResults) => {
     logger.debug({fetch: {url, options}})
     const path = (options.method || 'GET').toUpperCase() + ' ' + url
     const found = Object.keys(expectedFetchResults).find(pattern => path.match(new RegExp(pattern)))
-    return expectedFetchResults[found] || { status: 404 }
+    return expectedFetchResults[found] || { status: 404, headers: {get: () => ''} }
   } 
 }

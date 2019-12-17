@@ -1,5 +1,5 @@
-commit b185ae300f8d30ebd2a42d51303b74dd252ef51b
+commit 7cda9a2f06d4b22580ad06f0448d34129a182119
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 17 12:33:58 2019 +0100
+Date:   Tue Dec 17 15:24:25 2019 +0100
 
-    Fix: handling unexpected output from Mailchimp
+    Fixed handling of 'gender' and 'title' fields
