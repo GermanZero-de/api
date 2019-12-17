@@ -1,7 +1,7 @@
 const btoa = require('btoa')
 const crypto = require('crypto')
 
-module.exports = (fetch, config) => {
+module.exports = (fetch, config, logger) => {
   const baseUrl = 'https://' + config.mailchimp.apiKey.replace(/.*-(\w+)$/, '$1') + '.api.mailchimp.com/3.0'
   const authorization = 'Basic ' + btoa('x:' + config.mailchimp.apiKey)
 
@@ -24,6 +24,10 @@ module.exports = (fetch, config) => {
     async addTags(person, tags) {
       const segmentPath = `/lists/${config.mailchimp.listId}/segments`
       const segments = await fetchFromMC(segmentPath)
+      if (!segments || !segments.segments) {
+        logger.debug(segments)
+        throw segments
+      }
       return Promise.all(tags.map(async tag => {
         const segment = segments.segments.find(s => s.name === tag)
         const method = 'POST'

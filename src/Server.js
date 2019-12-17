@@ -2,11 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 
-module.exports = (store, models, logger, fetch, mailSender, config) => {
-  const auth = require('./auth')(fetch, logger)
-  const adapters = require('./adapters')(fetch, config)
-  const controller = require('./controller/ContactController')(store, models, adapters, mailSender, config)
-  const mainRouter = require('./MainRouter')(adapters, controller, auth, logger)
+module.exports = (mainRouter, logger, config) => {
   const app = express()
 
   //const origin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : undefined
