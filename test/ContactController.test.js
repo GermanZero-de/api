@@ -13,12 +13,15 @@ const fetch = require('./MockFetch')(logger, {
 const mailSender = require('./MockMailSender')(logger)
 const adapters = require('../src/adapters')(fetch, config)
 const {encrypt} = require('../src/Encoder')(config)
+const mapper = require('../src/mapper/CrmMapper')
 
 const testContact = {
   email: 'janedoe@example.com',
   firstName: 'Jane',
   lastName: 'Doe',
-  postalCode: '10000'
+  postalCode: '10000',
+  gender: 'female',
+  title: 'Dr.'
 }
 
 describe('ContactController', () => {
@@ -49,6 +52,18 @@ describe('ContactController', () => {
 
   describe('registerAsVolunteer', () => {
     ['email', 'firstName', 'lastName'].forEach(field => assertFieldIsValid(field, contact => controller.registerAsVolunteer(contact)))
+
+    mapper.getKnownGenders().forEach(gender => {
+      it(`should accept '${gender}' as gender`, async () => {
+        await controller.registerAsVolunteer({...testContact, gender})
+      })
+    })
+
+    mapper.getKnownTitles().forEach(title => {
+      it(`should accept '${title}' as title`, async () => {
+        await controller.registerAsVolunteer({...testContact, title})
+      })
+    })
   })
 
   describe('mailchimp-webhook', () => {

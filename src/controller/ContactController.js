@@ -38,8 +38,8 @@ module.exports = (store, models, adapters, MailSender, config) => {
       assert(contact.email && contact.email.match(/.+@.+\.\w+/), `email field doesn't look like an email`)
       assert(contact.firstName, `Field 'firstName' is required`)
       assert(contact.lastName, `Field 'lastName' is required`)
-      assert(!contact.gender || getKnownGenders.includes(contact.gender), `Field 'gender' contains an invalid value`)
-      assert(!contact.title || getKnownTitles.includes(contact.title), `Field 'title' contains an invalid value`)
+      assert(!contact.gender || getKnownGenders().includes(contact.gender), `Field 'gender' contains an invalid value`)
+      assert(!contact.title || getKnownTitles().includes(contact.title), `Field 'title' contains an invalid value`)
       contact.tags = ['Volunteer']
       if (contact.newsletter) {
         contact.tags.push('Newsletter')

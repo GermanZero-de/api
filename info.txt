@@ -1,5 +1,5 @@
-commit 4968381b3ee2b54087c8688023cac6820b75fecb
+commit b185ae300f8d30ebd2a42d51303b74dd252ef51b
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 17 11:43:17 2019 +0100
+Date:   Tue Dec 17 12:33:58 2019 +0100
 
-    Fix: prevented worker to run for an additional try after shutdown
+    Fix: handling unexpected output from Mailchimp
