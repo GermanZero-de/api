@@ -26,7 +26,9 @@ module.exports = (adapters, controller, auth, logger) => {
         }
       } catch (error) {
         logger.debug(error)
-        res.status(error.status || 500).json(error)
+        const status = error.httpStatus || 500
+        delete error.httpStatus
+        res.status(status).json(error)
       }
     }
   }

@@ -8,7 +8,11 @@ const methodMapping = {
 }
 
 module.exports = (fetch, config) => {
+  let id = -1
   async function fetchFromCRM(path, method, body) {
+    if (!config.civicrm.url) {
+      return {values: [{id: id--, ...body}]}
+    }
     const crmPath = config.civicrm.url + '/sites/all/modules/civicrm/extern/rest.php?'
     const params = {
       key: config.civicrm.sitekey,

@@ -12,7 +12,12 @@ const jsonContentType = 'application/json'
 const noop = () => {}
 
 function okResult(data) {
-  return {ok: true, status: 200, headers: {'content-type': jsonContentType}, json: () => data}
+  const headers = {
+    get(which) {
+      return which === 'content-type' ? jsonContentType : undefined
+    }
+  }
+  return {ok: true, status: 200, headers, json: () => data}
 }
 
 const logger = require('./MockLogger')
