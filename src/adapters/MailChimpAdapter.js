@@ -8,7 +8,8 @@ module.exports = (fetch, config) => {
   async function fetchFromMC(path, options = {}) {
     options.headers = Object.assign({}, options.headers, {authorization})
     const response = await fetch(baseUrl + path, options)
-    const content = response.headers['content-type'].match(/json/) ? await response.json() : await response.text()
+    const headers = response.headers || []
+    const content = (headers['content-type'] || '').match(/json/) ? await response.json() : await response.text()
     if (response.ok) {
       return content
     }
