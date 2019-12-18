@@ -25,6 +25,7 @@ const logger = require('./MockLogger')
 const fetch = require('./MockFetch')(logger, {
   '^POST https://civicrm/.*&entity=contact&action=get&email=johndoe%40example.com': okResult({values: {}}),
   '^POST https://civicrm/.*&entity=contact&action=create': okResult({values: {'4711': {id:'4711'}}}),
+  '^POST https://civicrm/.*&entity=address&action=create': okResult({}),
   '^POST https://civicrm/.*&entity=contact&action=update&id=4711': okResult({values: [{id: 4711, email: 'johndoe@example.com'}]}),
   '^PUT https://key.api.mailchimp.com/3.0/lists/mc-list/members/': okResult({}),
   'https://key.api.mailchimp.com/3.0/lists/mc-list/segments': okResult({segments: []})
