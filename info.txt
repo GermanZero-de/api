@@ -1,5 +1,5 @@
-commit d920ac8000157efa01894d3c84316fb41ae6b8b5
+commit dcfb83edd9c66bd1513b659dfe730e2f192e0fca
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 17 16:36:19 2019 +0100
+Date:   Wed Dec 18 19:05:56 2019 +0100
 
-    Simulate CRM if not configured. Fixed handling of http headers from MailChimp. Fixed returning correct http status codes
+    Create address entry in CRM

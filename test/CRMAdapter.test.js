@@ -19,6 +19,7 @@ const logger = require('./MockLogger')
 const fetch = require('./MockFetch')(logger, {
   '^POST https://civicrm/.*&entity=contact&action=get&email=janedoe%40example.com': okResult({values: [crmEntry]}),
   '^POST https://civicrm/.*&entity=contact&action=create$': okResult({values: [{}]}),
+  '^POST https://civicrm/.*&entity=address&action=create': okResult({values: [{}]}),
   '^POST https://civicrm/.*&entity=contact&action=update&id=4711$': okResult({values: [{}]})
 })
 

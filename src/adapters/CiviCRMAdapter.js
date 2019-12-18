@@ -39,8 +39,11 @@ module.exports = (fetch, config) => {
   return {
     async createContact(data) {
       const fields = mapContact2CrmFields(data)
-      const result = await fetchFromCRM('/contact', 'POST', {json: JSON.stringify({contact_type: 'Individual', ...fields})})
-      return Object.values(result.values)[0]
+      const contact = await fetchFromCRM('/contact', 'POST', {json: JSON.stringify({contact_type: 'Individual', ...fields})})
+      if (data.postalCode) {
+        await fetchFromCRM('/address', 'POST', {json: JSON.stringify({contact_id: contact.id, location_type: 'Home', postal_code: data.postalCode})})
+      }
+      return Object.values(contact.values)[0]
     },
 
     async updateContact(id, change) {
