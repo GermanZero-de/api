@@ -1,5 +1,5 @@
-commit ad87b71646efd280b2cb495c4875f252a8c5f915
+commit 0961e888c172a4864abaa1541576ade4ace15868
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Wed Dec 18 19:05:56 2019 +0100
+Date:   Thu Dec 19 01:44:25 2019 +0100
 
-    Create address entry in CRM
+    Make sure that worker is insitialized after read models are ready

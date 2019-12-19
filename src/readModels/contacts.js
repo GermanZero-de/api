@@ -9,13 +9,20 @@ module.exports = function () {
     dependencies: [],
 
     handleEvent(event, assert) {
+      function removeRequest(compare) {
+        const index = requests.findIndex(compare)
+        if (index >= 0) {
+          requests.splice(index, 1)
+        }
+      }
+    
       switch (event.type) {
         case 'contact-requested':
           assert(event.contact, 'No contact information in event')
           assert(event.contact.email, 'Missing email address')
           assert(!contacts.byEmail[event.contact.email], 'Contact already exists')
           contacts.byEmail[event.contact.email] = event.contact
-          requests.push({type: 'create-contact', contact: event.contact})
+          requests.push({type: 'create-contact', contact: event.contact, ts: event.ts})
           break
 
         case 'contact-created':
@@ -25,19 +32,25 @@ module.exports = function () {
           assert(contacts.byEmail[event.contact.email], 'Unknown contact')
           contacts.byEmail[event.contact.email].id = event.contact.id
           contacts.byId[event.contact.id] = contacts.byEmail[event.contact.email]
-          requests.splice(requests.findIndex(r => r.type === 'create-contact' && r.contact.email === event.contact.email), 1)
+          removeRequest(r => r.type === 'create-contact' && r.contact.email === event.contact.email)
           break
 
         case 'confirmation-requested':
           assert(event.contactId, 'Missing contact id')
           assert(contacts.byId[event.contactId], 'Unknown contact')
-          requests.push({type: 'confirm-contact', contactId: event.contactId})
+          removeRequest(r => r.type === 'confirm-contact' && r.contactId === event.contactId)
+          requests.push({type: 'confirm-contact', contactId: event.contactId, ts: event.ts})
           break
 
         case 'confirmation-completed':
           assert(event.contactId, 'Missing contact id attribute')
           assert(contacts.byId[event.contactId], 'Contact not found')
-          requests.splice(requests.findIndex(r => r.contactId === event.contactId), 1)
+          removeRequest(r => r.type === 'confirm-contact' && r.contactId === event.contactId)
+          break
+        
+        case 'contact-unsubscribe':
+          assert(event.contactId, 'Missing contact id attribute')
+          removeRequest(r => r.contactId === event.contactId)
           break
 
       }
