@@ -1,5 +1,5 @@
-commit 0961e888c172a4864abaa1541576ade4ace15868
-Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Thu Dec 19 01:44:25 2019 +0100
+commit 8cf069bee9a75fac12c20b76d7c168ce14884a92
+Author: alexey m <alexey.m.ysbm@gmail.com>
+Date:   Tue Dec 17 19:48:06 2019 +0200
 
-    Make sure that worker is insitialized after read models are ready
+    footer partial
