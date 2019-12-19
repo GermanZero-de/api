@@ -1,5 +1,5 @@
-commit c350fcf8baf21865b9686e78c8246b1825770126
+commit 299b7822d4d81a2777b041e9d9275649331b953c
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Thu Dec 19 02:02:41 2019 +0100
+Date:   Thu Dec 19 02:39:31 2019 +0100
 
-    Removed superfluous images
+    Adapted other mails to standard design. Added text.
