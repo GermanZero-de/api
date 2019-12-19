@@ -13,32 +13,9 @@
     <tr>
         <td>
             <center style="max-width: 600px; width: 100%;">
+                {{> header}}
 
                 <table border="0" cellpadding="0" cellspacing="0" style="margin:0; padding:0" width="100%">
-                    <tr>
-                        <td>
-                            <img src="https://germanzero.de/email/img/logo.png" alt="logo" image border="0"
-                                 style="width:214px;
-                                 height: 32px; padding-left:77px; padding-top:35px; padding-right: 41px; display:block;">
-                        </td>
-                        <td style="vertical-align: bottom;">
-                            <table border="0" cellpadding="0" cellspacing="0"
-                                   style="margin:0; padding:0; width:186px; height: 38px" width="100%"
-                                   bgcolor="#FF3B44">
-                                <tr>
-                                    <td style="text-align: center; color: #ffffff;">
-                                        <a
-                                                target="_blank"
-                                                href="https://germanzero.de/spenden"
-                                                style="display:inline-block; font-family: Work Sans;font-style: normal;font-weight: bold;font-size: 16px;text-decoration: none; color: #ffffff;height: 38px;line-height: 38px;"
-                                        >
-                                            Ihre Spende hilft!
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
                     <table border="0" cellpadding="0" cellspacing="0" style="margin:0; padding:0" width="100%">
                         <tr>
                             <td style="padding-top: 30px;">
@@ -68,15 +45,8 @@
                                         line-height: 19px;
                                         color: #000000;
                                         ">
-                                            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
-                                            eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam
-                                            voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
-                                            clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit
-                                            amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
-                                            nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed
-                                            diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
-                                            clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit
-                                            amet.
+                                            Bitte bestätige durch Klicken auf den folgenden Link, dass wir deine Daten verwenden dürfen, um mit dir in Kontakt zu treten und	    <title>Document</title>
+                                            dich mit Informationen zu versorgen.
                                         </p>
                                     </span>
                             </td>
@@ -89,25 +59,13 @@
                                        style="margin:0; padding:0; width:273px; height: 50px" bgcolor="#FF3B44">
                                     <tr>
                                         <td style="text-align: center; color: #ffffff;">
-                                            {{#if unsubscribe}}
-                                                Wir werden dich auch weiterhin mit Informationen versorgen, wenn du dem nicht widersprichst.
-                                                Dazu einfach
-                                                <a
-                                                        href="{{unsubscribe}}"
-                                                        style="display:block; margin-left:10px; font-family: Work Sans; font-style: normal;font-weight: bold;font-size: 16px;line-height: 21px;text-decoration: none; color: #ffffff;height: 50px;line-height: 50px;"
-                                                        target="_blank"
-                                                >
-                                                    hier klicken
-                                                </a>
-                                            {{else}}
-                                                <a
-                                                        href="{{link}}"
-                                                        style="display:block; font-family: Work Sans;font-style: normal;font-weight: bold;font-size: 16px;line-height: 21px;text-decoration: none; color: #ffffff;height: 50px;line-height: 50px;"
-                                                        target="_blank"
-                                                >
-                                                    Bestätigen
-                                                </a>
-                                            {{/if}}
+                                            <a
+                                                    href="{{link}}"
+                                                    style="display:block; font-family: Work Sans;font-style: normal;font-weight: bold;font-size: 16px;line-height: 21px;text-decoration: none; color: #ffffff;height: 50px;line-height: 50px;"
+                                                    target="_blank"
+                                            >
+                                                Bestätigen
+                                            </a>
                                         </td>
                                     </tr>
                                 </table>
@@ -125,34 +83,16 @@
                                         line-height: 19px;
                                         color: #000000;
                                         ">
-                                            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
-                                            eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam
-                                            voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
-                                            clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit
-                                            amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
-                                            nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed
-                                            diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
-                                            clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit
-                                            amet.
+                                            Sollte der Link nicht funktionieren, kopiere ihn bitte in deinen Browser!
                                         </p>
                                     </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="padding-top: 20px;">
-                                    <span style="font-family: Work Sans;
-                                    font-style: normal;
-                                    font-weight: normal;
-                                    font-size: 16px;
-                                    line-height: 19px;">
-                                        <b>
-                                            Grüße aus dem Hauptquartier,<br>
-                                            Cecilia
-                                        </b>
-                                    </span>
+
+                                    <p>{{link}}</p>
                             </td>
                         </tr>
                     </table>
+
+                    {{> greeting}}
                     {{> footer}}
                 </table>
             </center>

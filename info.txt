@@ -1,5 +1,5 @@
-commit 8cf069bee9a75fac12c20b76d7c168ce14884a92
-Author: alexey m <alexey.m.ysbm@gmail.com>
-Date:   Tue Dec 17 19:48:06 2019 +0200
+commit c350fcf8baf21865b9686e78c8246b1825770126
+Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
+Date:   Thu Dec 19 02:02:41 2019 +0100
 
-    footer partial
+    Removed superfluous images
