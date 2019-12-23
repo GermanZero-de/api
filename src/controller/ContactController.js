@@ -80,7 +80,7 @@ module.exports = (store, models, adapters, MailSender, config) => {
           await adapters.MailChimpAdapter.addTags(contact, contact.tags)
         }
         const model = models.contacts.getById(contactId)
-        const unsubscribe = config.apiUrl + `/contacts/${contact.id}/unsubscribe/${encrypt(model.id)}`
+        const unsubscribe = config.apiUrl + `/contacts/${contact.id}/unsubscribe/${encrypt('' + model.id)}`
         await MailSender.send(model.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', {unsubscribe, contact})
         store.add({type: 'confirmation-completed', contactId})
       } catch (error) {
