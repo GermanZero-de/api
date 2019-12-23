@@ -23,6 +23,7 @@ function okResult(data) {
 const logger = require('./MockLogger')
 
 const fetch = require('./MockFetch')(logger, {
+  '^POST https://civicrm/.*entity=country&action=get': okResult({values: []}),
   '^POST https://civicrm/.*&entity=contact&action=get&email=johndoe%40example.com': okResult({values: {}}),
   '^POST https://civicrm/.*&entity=contact&action=create': okResult({values: {'4711': {id:'4711'}}}),
   '^POST https://civicrm/.*&entity=address&action=create': okResult({}),
@@ -150,7 +151,7 @@ describe('RoutingTest', () => {
     it('should set the status of a contact to "opt_in"', async () => {
       await request(app).get('/contacts/4711/confirmations/27c8ebd3ac585b50097ffa3c9457960b')
       await worker(models, controller, logger, {setTimeout: noop})
-      const entry = getFromLog('debug', 'fetch').find(entry => entry.url.match(/^https:\/\/civicrm\/.*entity=contact&action=update/))
+      const entry = getFromLog('debug', 'fetch').find(entry => entry.url.match(/^https:\/\/civicrm\/.*entity=contact/))
       entry.url.should.match(/%22is_opt_out%22%3A%220%22/)
     })
   

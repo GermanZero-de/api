@@ -1,4 +1,4 @@
-const fieldMapping = {
+const contactMapping = {
   id: 'id',
   gender: 'gender',
   formal_title: 'title',
@@ -6,18 +6,36 @@ const fieldMapping = {
   last_name: 'lastName',
   email: 'email',
   phone: 'phone',
+  is_opt_out: 'is_opt_out',
+}
+
+const addressMapping = {
   street_address: 'streetAddress',
   postal_code: 'postalCode',
   city: 'city',
-  country: 'country',
-  is_opt_out: 'is_opt_out'
+  country: 'country'
 }
 
-const genders = ['female', 'male', 'other']
-const titles = ['Dr.', 'Prof.', 'Dr. Dr.', 'Prof. Dr.', 'Prof. Dr. Dr.']
+const genders = {
+  female: 1,
+  male: 2,
+  other: 3
+}
+const prefixes = {
+  female: 1,
+  male: 3
+}
+const titles = { 'Dr.': 1, 'Prof.': 2, 'Dr. Dr.': 3, 'Prof. Dr.': 4, 'Prof. Dr. Dr.': 5 }
+let countries = []
+const websiteTypes = {
+  linkedin: 6,
+  xing: 13,
+  instagram: 5,
+  twitter: 11
+}
 
 function lookup(list, value) {
-  return value && list.findIndex(e => e === value) + 1
+  return value && list[value]
 }
 
 function setFieldIfNotEmpty(object, fieldName, value) {
@@ -27,30 +45,64 @@ function setFieldIfNotEmpty(object, fieldName, value) {
 }
 
 module.exports = {
+  setCountries(list) {
+    countries = list
+  },
+
   mapContact2CrmFields(data) {
-    const result = {}
-    Object.keys(fieldMapping).forEach(key => setFieldIfNotEmpty(result, key, data[fieldMapping[key]]))
-    setFieldIfNotEmpty(result, 'formal_title', lookup(titles, result.formal_title))
-    setFieldIfNotEmpty(result, 'gender', lookup(genders, result.gender))
-    if (result.gender < 3 && result.gender > 0) {
-      result.prefix_id = result.gender
+    const contact = {}
+    Object.keys(contactMapping).forEach(key => setFieldIfNotEmpty(contact, key, data[contactMapping[key]]))
+    setFieldIfNotEmpty(contact, 'gender', lookup(genders, data.gender))
+    contact.prefix_id = prefixes[data.gender]
+
+    const address = {}
+    Object.keys(addressMapping).forEach(key => setFieldIfNotEmpty(address, key, data[addressMapping[key]]))
+    setFieldIfNotEmpty(address, 'country', lookup(countries, data.country))
+    if (address.street_address && data.houseNumber) {
+      address.street_address += ' ' + data.houseNumber
     }
-    return result
+
+    const websites = Object.keys(websiteTypes)
+      .filter(type => data[type])
+      .map(type => ({ url: data[type], website_type_id: websiteTypes[type] }))
+
+    return {
+      contact,
+      address,
+      websites,
+    }
   },
 
   mapCrm2ContactFields(data) {
-    const result = {}
-    Object.keys(fieldMapping).forEach(key => setFieldIfNotEmpty(result, fieldMapping[key], data[key]))
-    setFieldIfNotEmpty(result, 'title', titles[result.title - 1])
-    setFieldIfNotEmpty(result, 'gender', genders[result.gender - 1])
+    const result = {
+      id: data.contact_id,
+      is_opt_out: data.is_opt_out,
+      firstName: data.first_name,
+      lastName: data.last_name,
+      title: data.formal_title,
+      streetAddress: data.street_address,
+      city: data.city,
+      postalCode: data.postal_code,
+      country: data.country,
+      phone: data.phone,
+      email: data.email,
+      gender: Object.keys(genders).find(g => genders[g] === data.gender),
+      tags: data.tags && data.tags.split(',')
+    }
+    Object.keys(websiteTypes).forEach(type => {
+      const entry = data['api.Website.get'] && data['api.Website.get'].values.find(e => +e.website_type_id === websiteTypes[type])
+      if (entry) {
+        result[type] = entry.url
+      }
+    })
     return result
   },
 
   getKnownGenders() {
-    return genders
+    return Object.keys(genders)
   },
 
   getKnownTitles() {
-    return titles
+    return Object.keys(titles)
   }
 }

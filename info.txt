@@ -1,5 +1,5 @@
-commit 299b7822d4d81a2777b041e9d9275649331b953c
+commit b54f337cea0b32b8857bcd86f2d8d13ca6423430
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Thu Dec 19 02:39:31 2019 +0100
+Date:   Mon Dec 23 13:44:07 2019 +0100
 
-    Adapted other mails to standard design. Added text.
+    Improved mapping. Added script to update contacts
