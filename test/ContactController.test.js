@@ -7,8 +7,17 @@ const logger = require('./MockLogger')
 const config = require('./testConfig')
 const EventStore = require('../src/EventStore')
 const ModelsFactory = require('../src/readModels')
+
+const jsonContentType = 'application/json'
+
+function okResult(data) {
+  const headers = {
+    get: which => which === 'content-type' ? jsonContentType : undefined
+  }
+  return {ok: true, status: 200, headers, json: () => data}
+}
 const fetch = require('./MockFetch')(logger, {
-  'POST https://civicrm/sites/all/modules/civicrm/extern/rest.php': {ok: true, json: () => ({values: [{}]})}
+  'POST https://civicrm/sites/all/modules/civicrm/extern/rest.php': okResult({values: [{}]})
 })
 const mailSender = require('./MockMailSender')(logger)
 const adapters = require('../src/adapters')(fetch, config)
@@ -89,7 +98,8 @@ describe('ContactController', () => {
         type: 'unsubscribe',
         'data[email]': 'janedoe@example.com'
       })
-      logger.log[0].debug.fetch.url.should.match(/%7B%22is_opt_out%22%3A%221%22%7D&entity=contact&action=update&id=4711/)
+      const expected = 'json=' + encodeURIComponent(JSON.stringify({id: 4711, sequential: true, is_opt_out: '1'}))
+      logger.log[0].debug.fetch.url.should.match(new RegExp(expected))
     })
   })
 
@@ -114,7 +124,8 @@ describe('ContactController', () => {
 
     it('should set opt-out when unsubscribe is called', async () => {
       await unsubscribeWithValidCode()
-      logger.log[0].debug.fetch.url.should.match(/%7B%22is_opt_out%22%3A%221%22%7D&entity=contact&action=update&id=4711/)
+      const expected = 'json=' + encodeURIComponent(JSON.stringify({id: 4711, sequential: true, is_opt_out: '1'}))
+      logger.log[0].debug.fetch.url.should.match(new RegExp(expected))
     })
 
     it('should redirect if unsubscribe is called', async () => {

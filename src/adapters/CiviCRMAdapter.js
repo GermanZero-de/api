@@ -1,62 +1,92 @@
-const {mapContact2CrmFields, mapCrm2ContactFields} = require('../mapper/CrmMapper')
-
-const methodMapping = {
-  post: 'create',
-  get: 'get',
-  put: 'update',
-  delete: 'delete'
-}
+const {setCountries, mapContact2CrmFields, mapCrm2ContactFields} = require('../mapper/CrmMapper')
 
 module.exports = (fetch, config) => {
   let id = -1
-  async function fetchFromCRM(path, method, body) {
+
+  async function fetchFromCRM(entity, action, body) {
     if (!config.civicrm.url) {
       return {values: [{id: id--, ...body}]}
     }
-    const crmPath = config.civicrm.url + '/sites/all/modules/civicrm/extern/rest.php?'
-    const params = {
-      key: config.civicrm.sitekey,
-      api_key: config.civicrm.apikey,
-      json: 1,
-      entity: path.replace(/^\//, ''),
-      action: methodMapping[method.toLowerCase()],
-      ...body
-    }
-    const paramStr = Object.keys(params).map(key => (key + '=' + encodeURIComponent(params[key]))).join('&')
-    const result = await fetch(crmPath + paramStr, {method: 'POST'})
-    if (!result.ok) {
-      console.error(result.status + ' ' + result.statusText)
-      throw Error(`Cannot access CiviCRM on ${crmPath}`)
-    }
-    const data = await result.json()
-    if (data.is_error) {
-      console.error(data)
+    try {
+      const crmPath = config.civicrm.url + '/sites/all/modules/civicrm/extern/rest.php?'
+      const params = {
+        key: config.civicrm.sitekey,
+        api_key: config.civicrm.apikey,
+        json: JSON.stringify(body),
+        entity,
+        action
+      }
+      const paramStr = Object.keys(params).map(key => (key + '=' + encodeURIComponent(params[key]))).join('&')
+      // console.log(crmPath + paramStr)
+      const result = await fetch(crmPath + paramStr, {method: 'POST'})
+      if (!result.ok) {
+        console.error(result.status + ' ' + result.statusText)
+        throw Error(`Cannot access CiviCRM on ${crmPath}`)
+      }
+      const data = result.headers.get('content-type').match(/json/) ? await result.json() : await result.text()
+      if (data.is_error) {
+        console.error(data)
+        throw Error('CiviCRM returned an error')
+      }
+      return data
+    } catch (error) {
+      console.error(error)
       throw Error('CiviCRM returned an error')
     }
-    return data
   }
+
+  const countriesLoaded = fetchFromCRM('country', 'get', {sequential: true, options: {limit: 99999}})
+    .then(countries => setCountries(Object.assign({}, ...countries.values.map(e => ({[e.name]: e.id})))))
 
   return {
     async createContact(data) {
+      await countriesLoaded
       const fields = mapContact2CrmFields(data)
-      const contact = await fetchFromCRM('/contact', 'POST', {json: JSON.stringify({contact_type: 'Individual', ...fields})})
-      if (data.postalCode) {
-        await fetchFromCRM('/address', 'POST', {json: JSON.stringify({contact_id: contact.id, location_type: 'Home', postal_code: data.postalCode})})
+      const contact = await fetchFromCRM('contact', 'create', {contact_type: 'Individual', ...fields.contact})
+      let address = {}
+      if (Object.values(fields.address).some(property => property)) {
+        address = await fetchFromCRM('address', 'create', {contact_id: contact.id, location_type: 'Home', ...fields.address})
       }
-      return Object.values(contact.values)[0]
+      let websites = []
+      if (fields.websites) {
+        websites = await Promise.all(fields.websites.map(website => fetchFromCRM('website', 'create', {contact_id: contact.id, ...website})))
+      }
+      return {contact, address, websites}
+    },
+
+    async addAddress(contactId, address) {
+      const fields = mapContact2CrmFields(address)
+      const result = await fetchFromCRM('address', 'create', {sequential: true, contact_id: contactId, ...fields})
+      return result.values[0]
     },
 
     async updateContact(id, change) {
-      const result = await fetchFromCRM('/contact', 'PUT', {id, json: JSON.stringify(mapContact2CrmFields(change))})
-      return Object.values(result.values)[0]
+      const fields = mapContact2CrmFields(change).contact
+      const result = await fetchFromCRM('contact', 'create', {id, sequential: true, ...fields})
+      return result.values[0]
+    },
+
+    async updateAddress(id, change) {
+      const result = await fetchFromCRM('address', 'create', {id, sequential: true, ...mapContact2CrmFields(change)})
+      return result.values[0]
     },
 
     async getContactByEMail(email) {
-      const result = await fetchFromCRM('/contact', 'GET', {email})
+      const result = await fetchFromCRM('contact', 'get', {email, sequential: true})
       if (result.is_error || !result.values || Object.keys(result.values).length === 0) {
         return undefined
       }
-      return mapCrm2ContactFields(Object.values(result.values)[0])
+      return mapCrm2ContactFields(result.values[0])
+    },
+
+    async getAllContacts() {
+      const result = await fetchFromCRM('contact', 'get', {
+        sequential: true,
+        options: {limit: 99999},
+        return: 'id,is_opt_out,first_name,last_name,prefix_id,formal_title,gender_id,address_id,street_address,postal_code,city,country_id,country,phone,email,tags',
+        'api.Website.get': {}
+      })
+      return result.values.map(mapCrm2ContactFields)
     }
   }
 }

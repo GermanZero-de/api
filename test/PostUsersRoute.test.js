@@ -5,12 +5,17 @@ const bodyParser = require('body-parser')
 const request = require('supertest')
 require('should')
 
+const jsonContentType = 'application/json'
 function okResult(data) {
-  return {ok: true, status: 200, headers: {'content-type': 'application/json'}, json: () => data}
+  const headers = {
+    get: which => which === 'content-type' ? jsonContentType : undefined
+  }
+  return {ok: true, status: 200, headers, json: () => data}
 }
 
 const logger = require('./MockLogger')
 const fetch = require('./MockFetch')(logger, {
+  '^POST https://civicrm/.*entity=country&action=get': okResult({values: []}),
   'POST https://rocket.chat/api/v1/users.create': okResult({success: true}),
   'POST https://rocket.chat/api/v1/login': okResult({status: 'success', data: {}}),
   'POST https://rocket.chat/api/v1/logout': okResult({}),

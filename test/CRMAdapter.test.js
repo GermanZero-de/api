@@ -3,13 +3,17 @@
 require('should')
 const config = require('./testConfig')
 
+const jsonContentType = 'application/json'
 function okResult(data) {
-  return {ok: true, status: 200, headers: {'content-type': 'application/json'}, json: () => data}
+  const headers = {
+    get: which => which === 'content-type' ? jsonContentType : undefined
+  }
+  return {ok: true, status: 200, headers, json: () => data}
 }
 
 const crmEntry = {
   gender: 1,
-  formal_title: '2',
+  formal_title: 'Prof.',
   first_name: 'Jane',
   last_name: 'Dow',
   email: 'janedoe∆example.com'
@@ -17,10 +21,11 @@ const crmEntry = {
 
 const logger = require('./MockLogger')
 const fetch = require('./MockFetch')(logger, {
-  '^POST https://civicrm/.*&entity=contact&action=get&email=janedoe%40example.com': okResult({values: [crmEntry]}),
+  '^POST https://civicrm/.*entity=country&action=get': okResult({values: []}),
+  '^POST https://civicrm/.*%22email%22%3A%22janedoe%40example.com%22.*&entity=contact&action=get$': okResult({values: [crmEntry]}),
   '^POST https://civicrm/.*&entity=contact&action=create$': okResult({values: [{}]}),
   '^POST https://civicrm/.*&entity=address&action=create': okResult({values: [{}]}),
-  '^POST https://civicrm/.*&entity=contact&action=update&id=4711$': okResult({values: [{}]})
+  '^POST https://civicrm/.*id%22%3A4711.*&entity=contact&action=create$': okResult({values: [{}]})
 })
 
 const adapter = require('../src/adapters/CiviCRMAdapter')(fetch, config)
@@ -37,11 +42,6 @@ describe('CiviCRMAdapter', () => {
     it('should map contact fields to CRM fields', async () => {
       await adapter.createContact({firstName: 'John', lastName: 'Doe', email: 'johndoe@example.com'})
       Object.keys(getCRMParameters(logger.log[0])).should.containDeep(['first_name', 'last_name', 'email'])
-    })
-
-    it('should map title field to list entry', async () => {
-      await adapter.createContact({title: 'Prof.'})
-      getCRMParameters(logger.log[0]).should.containDeep({formal_title: 2})
     })
 
     it('should map gender field to list entry', async () => {
@@ -71,11 +71,6 @@ describe('CiviCRMAdapter', () => {
     it('should map CRM fields to contact fields', async () => {
       const result = await adapter.getContactByEMail('janedoe@example.com')
       Object.keys(result).should.containEql('lastName')
-    })
-
-    it('should map formal title to contacts value of title', async () => {
-      const result = await adapter.getContactByEMail('janedoe@example.com')
-      result.title.should.equal('Prof.')
     })
 
     it('should map gender to contacts value of gender', async () => {
