@@ -1,5 +1,5 @@
-commit 82d1e80cb1340534405d7bb9b996624dda6276ba
+commit 55ddf84b243d5a9803d767eb9a4bd683ffe986c7
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Mon Dec 30 17:10:13 2019 +0100
+Date:   Mon Dec 30 17:39:04 2019 +0100
 
-    Countries in ISO and tags
+    Update opt-in status only if changed
