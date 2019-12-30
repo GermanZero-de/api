@@ -47,40 +47,50 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
     }
   }
 
+  async function upsertContact(contact) {
+    let change = null
+
+    if (contact.streetAddress && contact.houseNumber) {
+      contact.streetAddress += ' ' + contact.houseNumber
+      delete contact.houseNumber
+    }
+    const email = contact.email.toLowerCase()
+    contact = contactsByEMail[email]
+    if (!contact) {
+      logger.info(`Contact '${email}' not yet in CRM`)
+      change = contact
+    } else {
+      const diff = Object.keys(contact)
+        .filter(byChangedField(contact, contact))
+        .map(key => ({[key]: contact[key]}))
+      if (diff.length) {
+        change = Object.assign({id: contact.id}, ...diff)
+        logger.info(`Contact '${email}' gets new information ${JSON.stringify(change)}`)
+      }
+    }
+    if (change) {
+      try {
+        contactsByEMail[email] = await CRM.upsertContact(change, contact) //eslint-disable-line
+      } catch (error) {
+        logger.error(error)
+      }
+    }
+  }
+
+  async function setOptOutStatus(contactId, newStatus) {
+    const contact = contactsById[contactId]
+    if (!contact) {
+      logger.error(`Contact ${contactId} not found`)
+    } else if (contact.is_opt_out !== newStatus) {
+      logger.info(`User ${contactId} opted in`)
+      await CRM.upsertContact({id: contactId, is_opt_out: newStatus}, contact)
+    }
+  }
+
   async function listener(event) {
-    let contact
-    let diff
-    let change
     switch(event.type) {
       case 'contact-requested':
-        addToQueue(async () => {
-          if (event.contact.streetAddress && event.contact.houseNumber) {
-            event.contact.streetAddress += ' ' + event.contact.houseNumber
-            delete event.contact.houseNumber
-          }
-          change = null
-          const email = event.contact.email.toLowerCase()
-          contact = contactsByEMail[email]
-          if (!contact) {
-            logger.info(`Contact '${email}' not yet in CRM`)
-            change = event.contact
-          } else {
-            diff = Object.keys(contact)
-              .filter(byChangedField(event.contact, contact))
-              .map(key => ({[key]: event.contact[key]}))
-            if (diff.length) {
-              change = Object.assign({id: contact.id}, ...diff)
-              logger.info(`Contact '${email}' gets new information ${JSON.stringify(change)}`)
-            }
-          }
-          if (change) {
-            try {
-              contactsByEMail[email] = await CRM.upsertContact(change, contact) //eslint-disable-line
-            } catch (error) {
-              logger.error(error)
-            }
-          }
-        })
+        addToQueue(() => upsertContact(event.contact))
         break
         
       case 'contact-created':
@@ -90,27 +100,11 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
         break
                 
       case 'confirmation-completed':
-        addToQueue(async () => {
-          const contact = contactsById[event.contactId]
-          if (!contact) {
-            logger.error(`Contact ${event.contactId} not found`)
-          } else if (contact.is_opt_out !== '0') {
-            logger.info(`User ${event.contactId} opted in`)
-            await CRM.upsertContact({id: event.contactId, is_opt_out: '0'}, contact)
-          }
-        })
+        addToQueue(() => setOptOutStatus(event.contactId, '0'))
         break
   
       case 'contact-unsubscribe':
-        addToQueue(async () => {
-          const contact = contactsById[event.contactId]
-          if (!contact) {
-            logger.error(`Contact ${event.contactId} not found`)
-          } else if (contact.is_opt_out !== '1') {
-            logger.info(`User ${event.contactId} opted out`)
-            await CRM.upsertContact({id: event.contactId, is_opt_out: '1'}, contact)
-          }
-        })
+        addToQueue(() => setOptOutStatus(event.contactId, '1'))
         break
   
       default:
