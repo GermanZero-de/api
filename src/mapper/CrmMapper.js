@@ -7,13 +7,14 @@ const contactMapping = {
   email: 'email',
   phone: 'phone',
   is_opt_out: 'is_opt_out',
+  tags: 'tag'
 }
 
 const addressMapping = {
   street_address: 'streetAddress',
   postal_code: 'postalCode',
   city: 'city',
-  country: 'country'
+  country_id: 'country'
 }
 
 const genders = {
@@ -33,6 +34,10 @@ const websiteTypes = {
   instagram: 5,
   twitter: 11
 }
+const tags = {
+  Volunteer: 5,
+  Newsletter: 6
+}
 
 function lookup(list, value) {
   return value && list[value]
@@ -42,6 +47,16 @@ function setFieldIfNotEmpty(object, fieldName, value) {
   if (value) {
     object[fieldName] = value
   }
+}
+
+function reverseLookupCountry(country_id) {
+  if (country_id) {
+    const entry = Object.entries(countries).find(entry => entry[1] === country_id)
+    if (entry) {
+      return entry[0]
+    }
+  }
+  return ''
 }
 
 module.exports = {
@@ -57,10 +72,7 @@ module.exports = {
 
     const address = {}
     Object.keys(addressMapping).forEach(key => setFieldIfNotEmpty(address, key, data[addressMapping[key]]))
-    setFieldIfNotEmpty(address, 'country', lookup(countries, data.country))
-    if (address.street_address && data.houseNumber) {
-      address.street_address += ' ' + data.houseNumber
-    }
+    setFieldIfNotEmpty(address, 'country_id', lookup(countries, data.country))
 
     const websites = Object.keys(websiteTypes)
       .filter(type => data[type])
@@ -70,6 +82,7 @@ module.exports = {
       contact,
       address,
       websites,
+      tags: (data.tags && data.tags.map(tag => tags[tag]).filter(tag => tag)) || []
     }
   },
 
@@ -83,10 +96,10 @@ module.exports = {
       streetAddress: data.street_address,
       city: data.city,
       postalCode: data.postal_code,
-      country: data.country,
+      country: reverseLookupCountry(data.country_id),
       phone: data.phone,
       email: data.email,
-      gender: Object.keys(genders).find(g => genders[g] === data.gender),
+      gender: data.gender.toLowerCase(),
       tags: data.tags && data.tags.split(',')
     }
     Object.keys(websiteTypes).forEach(type => {

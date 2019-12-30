@@ -32,6 +32,19 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
     }
   }
 
+  function byChangedField(event, contact) {
+    return function (key) {
+      if (event[key] === undefined) {
+        return false
+      }
+      if (event[key] instanceof Array) {
+        return event[key].length !== contact[key].length ||
+          event[key].filter(x => contact[key].includes(x)).length !== event[key].length
+      }
+      return event[key] !== contact[key]
+    }
+  }
+
   async function listener(event) {
     let contact
     let diff
@@ -39,20 +52,31 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
     switch(event.type) {
       case 'contact-requested':
         addToQueue(async () => {
+          if (event.contact.streetAddress && event.contact.houseNumber) {
+            event.contact.streetAddress += ' ' + event.contact.houseNumber
+            delete event.contact.houseNumber
+          }
           change = null
-          if (!contacts[event.contact.email.toLowerCase()]) {
-            logger.info(`Contact '${event.contact.email}' not yet in CRM`)
+          const email = event.contact.email.toLowerCase()
+          contact = contacts[email]
+          if (!contact) {
+            logger.info(`Contact '${email}' not yet in CRM`)
             change = event.contact
           } else {
-            contact = contacts[event.contact.email.toLowerCase()]
-            diff = Object.keys(contact).filter(key => !contact[key] && event.contact[key]).map(key => ({[key]: event.contact[key]}))
+            diff = Object.keys(contact)
+              .filter(byChangedField(event.contact, contact))
+              .map(key => ({[key]: event.contact[key]}))
             if (diff.length) {
               change = Object.assign({id: contact.id}, ...diff)
-              logger.info(`Contact '${event.contact.email}' gets new information ${JSON.stringify(change)}`)
+              logger.info(`Contact '${email}' gets new information ${JSON.stringify(change)}`)
             }
           }
           if (change) {
-            contacts[event.contact.email.toLowerCase()] = await CRM.createContact(change) //eslint-disable-line
+            try {
+              contacts[email] = await CRM.upsertContact(change, contact) //eslint-disable-line
+            } catch (error) {
+              logger.error(error)
+            }
           }
         })
         break
@@ -64,9 +88,17 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
         break
                 
       case 'confirmation-completed':
+        addToQueue(async () => {
+          logger.info(`User ${event.contactId} opted in`)
+          await CRM.upsertContact({id: event.contactId, is_opt_out: '0'})
+        })
         break
   
       case 'contact-unsubscribe':
+        addToQueue(async () => {
+          logger.info(`User ${event.contactId} opted out`)
+          await CRM.upsertContact({id: event.contactId, is_opt_out: '1'})
+        })
         break
   
       default:
