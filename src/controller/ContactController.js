@@ -50,6 +50,10 @@ module.exports = (store, models, adapters, MailSender, config) => {
 
     async doContactRegistration(data) {
       try {
+        if (data.streetAddress && data.houseNumber) {
+          data.streetAddress += ' ' + data.houseNumber
+          delete data.houseNumber
+        }
         const contact = await adapters.CiviCRMAdapter.createContact({...data, is_opt_out: '1'})
         const id = contact.contact.id
         const code = encrypt('' + id)
