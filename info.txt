@@ -1,5 +1,5 @@
-commit 0787ee21e7edd11eefdcc17c96851692f006c809
+commit a67e2bd1db77f394ceca90fd18f8bc200e5ff000
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Mon Dec 23 13:44:07 2019 +0100
+Date:   Mon Dec 23 17:16:00 2019 +0100
 
-    Improved mapping. Added script to update contacts
+    Make sure that id is of string type before encoding it
