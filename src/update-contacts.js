@@ -9,8 +9,10 @@ const CRM = require('./adapters/CiviCRMAdapter')(fetch, config)
 const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), logger})
 
 ;(async function () {
-  store.listen(listener)  
-  const contacts = Object.assign({}, ...(await CRM.getAllContacts()).map(contact => ({[contact.email]: contact})))
+  store.listen(listener)
+  const allContacts = await CRM.getAllContacts()
+  const contactsByEMail = Object.assign({}, ...allContacts.map(contact => ({[contact.email]: contact})))
+  const contactsById = Object.assign({}, ...allContacts.map(contact => ({[contact.id]: contact})))
   const queue = {
     pending: [],
     running: null
@@ -58,7 +60,7 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
           }
           change = null
           const email = event.contact.email.toLowerCase()
-          contact = contacts[email]
+          contact = contactsByEMail[email]
           if (!contact) {
             logger.info(`Contact '${email}' not yet in CRM`)
             change = event.contact
@@ -73,7 +75,7 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
           }
           if (change) {
             try {
-              contacts[email] = await CRM.upsertContact(change, contact) //eslint-disable-line
+              contactsByEMail[email] = await CRM.upsertContact(change, contact) //eslint-disable-line
             } catch (error) {
               logger.error(error)
             }
@@ -89,15 +91,25 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
                 
       case 'confirmation-completed':
         addToQueue(async () => {
-          logger.info(`User ${event.contactId} opted in`)
-          await CRM.upsertContact({id: event.contactId, is_opt_out: '0'})
+          const contact = contactsById[event.contactId]
+          if (!contact) {
+            logger.error(`Contact ${event.contactId} not found`)
+          } else if (contact.is_opt_out !== '0') {
+            logger.info(`User ${event.contactId} opted in`)
+            await CRM.upsertContact({id: event.contactId, is_opt_out: '0'}, contact)
+          }
         })
         break
   
       case 'contact-unsubscribe':
         addToQueue(async () => {
-          logger.info(`User ${event.contactId} opted out`)
-          await CRM.upsertContact({id: event.contactId, is_opt_out: '1'})
+          const contact = contactsById[event.contactId]
+          if (!contact) {
+            logger.error(`Contact ${event.contactId} not found`)
+          } else if (contact.is_opt_out !== '1') {
+            logger.info(`User ${event.contactId} opted out`)
+            await CRM.upsertContact({id: event.contactId, is_opt_out: '1'}, contact)
+          }
         })
         break
   
