@@ -194,12 +194,21 @@ components:
           enum:
             - Dr.
             - Prof.
+            - Dr. Dr.
+            - Prof. Dr.
+            - Prof. Dr. Dr.
         streetAddress:
           type: string
         postalCode:
           type: string
         city:
           type: string
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          pattern: '^[A-Z]{2}$'
+          description: The countries 2 letter ISO code
         newsletter:
           type: boolean
           description: should be non-empty to register new members for the newsletter as well. This parameter is implicitly assumed on /subscriptions, because it is the reason to subscribe.

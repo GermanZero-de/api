@@ -12,10 +12,10 @@ function okResult(data) {
 }
 
 const crmEntry = {
-  gender: 1,
+  gender: 'Female',
   formal_title: 'Prof.',
   first_name: 'Jane',
-  last_name: 'Dow',
+  last_name: 'Doe',
   email: 'janedoe∆example.com'
 }
 
@@ -38,19 +38,19 @@ function getCRMParameters(logEntry) {
 describe('CiviCRMAdapter', () => {
   beforeEach(() => logger.reset())
 
-  describe('createContact', () => {
+  describe('upsertContact', () => {
     it('should map contact fields to CRM fields', async () => {
-      await adapter.createContact({firstName: 'John', lastName: 'Doe', email: 'johndoe@example.com'})
+      await adapter.upsertContact({firstName: 'John', lastName: 'Doe', email: 'johndoe@example.com'})
       Object.keys(getCRMParameters(logger.log[0])).should.containDeep(['first_name', 'last_name', 'email'])
     })
 
     it('should map gender field to list entry', async () => {
-      await adapter.createContact({gender: 'male'})
+      await adapter.upsertContact({gender: 'male'})
       getCRMParameters(logger.log[0]).should.containDeep({gender: 2})
     })
 
     it('should calculate prefix from gender', async () => {
-      await adapter.createContact({gender: 'female'})
+      await adapter.upsertContact({gender: 'female'})
       getCRMParameters(logger.log[0]).should.containDeep({prefix_id: 1})
     })
   })

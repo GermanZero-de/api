@@ -54,7 +54,7 @@ module.exports = (store, models, adapters, MailSender, config) => {
           data.streetAddress += ' ' + data.houseNumber
           delete data.houseNumber
         }
-        const contact = await adapters.CiviCRMAdapter.createContact({...data, is_opt_out: '1'})
+        const contact = await adapters.CiviCRMAdapter.upsertContact({...data, is_opt_out: '1'})
         const id = contact.contact.id
         const code = encrypt('' + id)
         const link = config.apiUrl + `/contacts/${id}/confirmations/${code}`
