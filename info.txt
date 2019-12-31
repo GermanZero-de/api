@@ -1,5 +1,5 @@
-commit 55ddf84b243d5a9803d767eb9a4bd683ffe986c7
+commit ebe4a4d55783a087c6d7ef2a93702756a80caedf
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Mon Dec 30 17:39:04 2019 +0100
+Date:   Mon Dec 30 17:52:27 2019 +0100
 
-    Update opt-in status only if changed
+    Reduced function's complexity
