@@ -1,5 +1,5 @@
-commit ebe4a4d55783a087c6d7ef2a93702756a80caedf
+commit ddebe2e11641f9de162e7a6b49fa6fd96b9c70ab
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Mon Dec 30 17:52:27 2019 +0100
+Date:   Tue Dec 31 10:40:54 2019 +0100
 
-    Reduced function's complexity
+    Unified behaviour of crm adapter functions
