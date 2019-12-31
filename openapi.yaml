@@ -8,6 +8,8 @@ info:
 servers:
   - url: 'http://localhost:3000'
     description: 'Local development'
+  - url: 'https://api.germanzero.org'
+    description: 'Test server'
   - url: 'https://api.germanzero.de'
     description: 'Live server'
 
