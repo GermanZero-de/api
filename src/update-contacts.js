@@ -47,30 +47,35 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
     }
   }
 
-  async function upsertContact(contact) {
-    let change = null
-
-    if (contact.streetAddress && contact.houseNumber) {
-      contact.streetAddress += ' ' + contact.houseNumber
-      delete contact.houseNumber
-    }
-    const email = contact.email.toLowerCase()
-    contact = contactsByEMail[email]
+  function getChange(newData, contact) {
     if (!contact) {
-      logger.info(`Contact '${email}' not yet in CRM`)
-      change = contact
+      logger.info(`Contact '${newData.email}' not yet in CRM`)
+      return newData
     } else {
-      const diff = Object.keys(contact)
-        .filter(byChangedField(contact, contact))
-        .map(key => ({[key]: contact[key]}))
+      const diff = Object.keys(newData)
+        .filter(byChangedField(newData, contact))
+        .map(key => ({[key]: newData[key]}))
       if (diff.length) {
-        change = Object.assign({id: contact.id}, ...diff)
-        logger.info(`Contact '${email}' gets new information ${JSON.stringify(change)}`)
+        const change = Object.assign({id: contact.id}, ...diff)
+        logger.info(`Contact '${contact.email}' gets new information ${JSON.stringify(change)}`)
+        return change
+      } else {
+        return null
       }
     }
+  }
+
+  async function upsertContact(newData) {
+    if (newData.streetAddress && newData.houseNumber) {
+      newData.streetAddress += ' ' + newData.houseNumber
+      delete newData.houseNumber
+    }
+    const email = newData.email.toLowerCase()
+    const contact = contactsByEMail[email]
+    const change = getChange(newData, contact)
     if (change) {
       try {
-        contactsByEMail[email] = await CRM.upsertContact(change, contact) //eslint-disable-line
+        contactsByEMail[email] = await CRM.upsertContact(change) //eslint-disable-line
       } catch (error) {
         logger.error(error)
       }
@@ -83,7 +88,7 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
       logger.error(`Contact ${contactId} not found`)
     } else if (contact.is_opt_out !== newStatus) {
       logger.info(`User ${contactId} opted in`)
-      await CRM.upsertContact({id: contactId, is_opt_out: newStatus}, contact)
+      await CRM.upsertContact({id: contactId, is_opt_out: newStatus})
     }
   }
 

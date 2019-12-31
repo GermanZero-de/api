@@ -1,5 +1,7 @@
 const {setCountries, mapContact2CrmFields, mapCrm2ContactFields} = require('../mapper/CrmMapper')
 
+const fieldList = 'id,is_opt_out,first_name,last_name,prefix_id,formal_title,gender_id,address_id,street_address,postal_code,city,country_id,country,phone,email,tag'
+
 module.exports = (fetch, config) => {
   let id = -1
 
@@ -34,37 +36,49 @@ module.exports = (fetch, config) => {
     .then(countries => setCountries(Object.assign({}, ...countries.values.map(e => ({[e.iso_code]: e.id})))))
 
   return {
-    async upsertContact(data) {
-      await countriesLoaded
-      const fields = mapContact2CrmFields(data)
-      const contact = await fetchFromCRM('contact', 'create', {contact_type: 'Individual', ...fields.contact})
-      let address = {}
-      if (Object.values(fields.address).some(property => property)) {
-        address = await fetchFromCRM('address', 'create', {contact_id: contact.id, location_type: 'Home', ...fields.address})
-      }
-      let websites = []
-      if (fields.websites) {
-        websites = await Promise.all(fields.websites.map(website => fetchFromCRM('website', 'create', {contact_id: contact.id, ...website})))
-      }
-      let tags = []
-      if (fields.tags) {
-        tags = await Promise.all(fields.tags.map(tag => fetchFromCRM('EntityTag', 'create', {entity_id: contact.id, entity_table: 'civicrm_contact', tag_id: tag})))
-      }
-      return {contact, address, websites, tags}
-    },
-
-    async updateContact(id, change) {
-      const fields = mapContact2CrmFields(change).contact
-      const result = await fetchFromCRM('contact', 'create', {id, sequential: true, ...fields})
-      return result.values[0]
-    },
-
-    async getContactByEMail(email) {
-      const result = await fetchFromCRM('contact', 'get', {email, sequential: true})
+    async getSingleContact(where) {
+      const result = await fetchFromCRM('contact', 'get', {...where, return: fieldList, sequential: true})
       if (result.is_error || !result.values || Object.keys(result.values).length === 0) {
         return undefined
       }
       return mapCrm2ContactFields(result.values[0])
+    },
+
+    async upsertContact(data) {
+      await countriesLoaded
+      const fields = mapContact2CrmFields(data)
+      if (!data.id) {
+        fields.contact.contact_type = 'Individual'
+      }
+      const contact = await fetchFromCRM('contact', 'create', fields.contact)
+      if (Object.values(fields.address).some(property => property)) {
+        if (data.raw) {
+          fields.address.id = data.raw.address_id
+        }
+        await fetchFromCRM('address', 'create', {contact_id: contact.id, location_type: 'Home', ...fields.address})
+      }
+      if (fields.websites) {
+        await Promise.all(fields.websites.map(website => fetchFromCRM('website', 'create', {contact_id: contact.id, ...website})))
+      }
+      if (data.tags) {
+        const newTags = data.tags.filter(tag => !data.raw || !data.raw.tags || !data.raw.tags.includes(tag))
+        await Promise.all(newTags.map(tag => fetchFromCRM('EntityTag', 'create', {entity_id: contact.id, entity_table: 'civicrm_contact', tag_id: tag})))
+      }
+      const result = await fetchFromCRM('contact', 'get', {id: contact.id, return: fieldList, sequential: true})
+      if (result.is_error || !result.values || Object.keys(result.values).length === 0) {
+        return undefined
+      }
+      return this.getSingleContact({id: contact.id})
+    },
+
+    async updateContact(id, change) {
+      const fields = mapContact2CrmFields(change).contact
+      await fetchFromCRM('contact', 'create', {id, sequential: true, ...fields})
+      return this.getSingleContact({id})
+    },
+
+    async getContactByEMail(email) {
+      return this.getSingleContact({email})
     },
 
     async getAllContacts() {
@@ -72,7 +86,7 @@ module.exports = (fetch, config) => {
       const result = await fetchFromCRM('contact', 'get', {
         sequential: true,
         options: {limit: 99999},
-        return: 'id,is_opt_out,first_name,last_name,prefix_id,formal_title,gender_id,address_id,street_address,postal_code,city,country_id,country,phone,email,tag',
+        return: fieldList,
         'api.Website.get': {}
       })
       return result.values.map(mapCrm2ContactFields)

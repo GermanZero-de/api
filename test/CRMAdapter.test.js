@@ -23,6 +23,7 @@ const logger = require('./MockLogger')
 const fetch = require('./MockFetch')(logger, {
   '^POST https://civicrm/.*entity=country&action=get': okResult({values: []}),
   '^POST https://civicrm/.*%22email%22%3A%22janedoe%40example.com%22.*&entity=contact&action=get$': okResult({values: [crmEntry]}),
+  '^POST https://civicrm/.*&entity=contact&action=get': okResult({values: []}),
   '^POST https://civicrm/.*&entity=contact&action=create$': okResult({values: [{}]}),
   '^POST https://civicrm/.*&entity=address&action=create': okResult({values: [{}]}),
   '^POST https://civicrm/.*id%22%3A4711.*&entity=contact&action=create$': okResult({values: [{}]})

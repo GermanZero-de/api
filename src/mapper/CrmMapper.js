@@ -87,8 +87,9 @@ module.exports = {
   },
 
   mapCrm2ContactFields(data) {
+    const tags = (data.tags && data.tags.split(',')) || []
     const result = {
-      id: data.contact_id,
+      id: data.id,
       is_opt_out: data.is_opt_out,
       firstName: data.first_name,
       lastName: data.last_name,
@@ -99,13 +100,19 @@ module.exports = {
       country: reverseLookupCountry(data.country_id),
       phone: data.phone,
       email: data.email,
-      gender: data.gender.toLowerCase(),
-      tags: data.tags && data.tags.split(',')
+      gender: data.gender && data.gender.toLowerCase(),
+      tags,
+      raw: {
+        address_id: data.address_id,
+        websites: [],
+        tags
+      }
     }
     Object.keys(websiteTypes).forEach(type => {
       const entry = data['api.Website.get'] && data['api.Website.get'].values.find(e => +e.website_type_id === websiteTypes[type])
       if (entry) {
         result[type] = entry.url
+        result.raw.websites.push(entry)
       }
     })
     return result
