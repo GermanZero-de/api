@@ -1,5 +1,5 @@
-commit ca6e1406e03b98b51190d76dc720127b08986810
+commit adb3ac40b42e54c46b21e08f03216a8f25a6ef7e
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Fri Jan 10 17:31:40 2020 +0100
+Date:   Fri Jan 10 17:35:24 2020 +0100
 
-    Fixed email address in email footer
+    Output of progress in update script
