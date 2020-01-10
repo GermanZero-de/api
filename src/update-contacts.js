@@ -19,8 +19,13 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
   }
   await store.replay()
 
+  let queued = 0
+  let current = 0
+
   function addToQueue(func) {
+    queued++
     const task = async function () {
+      logger.info(`Working on ${current} of ${queued}`)
       await func()
       queue.running = queue.pending.shift()
       if (queue.running) {
@@ -84,7 +89,7 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
 
   async function setOptOutStatus(contactId, newStatus) {
     const contact = contactsById[contactId]
-    if (!contact) {
+    if  (!contact) {
       logger.error(`Contact ${contactId} not found`)
     } else if (contact.is_opt_out !== newStatus) {
       logger.info(`User ${contactId} opted in`)

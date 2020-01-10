@@ -1,5 +1,5 @@
-commit 0b7cc721d4311e9e629688753970801035c358cc
+commit ca6e1406e03b98b51190d76dc720127b08986810
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 31 17:11:09 2019 +0100
+Date:   Fri Jan 10 17:31:40 2020 +0100
 
-    Added test server to OAS3
+    Fixed email address in email footer
