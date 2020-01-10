@@ -1,5 +1,5 @@
-commit ddebe2e11641f9de162e7a6b49fa6fd96b9c70ab
+commit 0b7cc721d4311e9e629688753970801035c358cc
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Tue Dec 31 10:40:54 2019 +0100
+Date:   Tue Dec 31 17:11:09 2019 +0100
 
-    Unified behaviour of crm adapter functions
+    Added test server to OAS3
