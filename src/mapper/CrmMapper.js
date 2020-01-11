@@ -7,7 +7,9 @@ const contactMapping = {
   email: 'email',
   phone: 'phone',
   is_opt_out: 'is_opt_out',
-  tags: 'tag'
+  tags: 'tag',
+  custom_13: 'custom_sphere',
+  custom_20: 'time'
 }
 
 const addressMapping = {
@@ -36,7 +38,18 @@ const websiteTypes = {
 }
 const tags = {
   Volunteer: 5,
-  Newsletter: 6
+  Newsletter: 8,
+  finanzstark: 17,
+  reichweitenstark: 18,
+  'tatkräftig': 19,
+  it: 20,
+  'local-team': 21,
+  accounting: 22,
+  'text-ads-media': 23,
+  scientific: 24,
+  cooperation: 25,
+  fundraising: 26,
+  custom: 27
 }
 
 function lookup(list, value) {

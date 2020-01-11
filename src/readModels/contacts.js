@@ -5,6 +5,22 @@ module.exports = function () {
   }
   const requests = []
 
+  function unifyAssistsFields(contact) {
+    if (!contact.tags) {
+      contact.tags = []
+    }
+    Object.keys(contact)
+    .filter(key => key.match(/^(assists|sphere)/))
+    .forEach(key => {
+      if (contact[key] instanceof Array) {
+        contact.tags.push(...contact[key].map(t => t.toLowerCase()))
+      } else {
+        contact.tags.push(contact[key].toLowerCase())
+      }
+    })
+    return contact
+  }
+
   return {
     dependencies: [],
 
@@ -21,6 +37,7 @@ module.exports = function () {
           assert(event.contact, 'No contact information in event')
           assert(event.contact.email, 'Missing email address')
           assert(!contacts.byEmail[event.contact.email], 'Contact already exists')
+          unifyAssistsFields(event.contact)
           contacts.byEmail[event.contact.email] = event.contact
           requests.push({type: 'create-contact', contact: event.contact, ts: event.ts})
           break
@@ -30,6 +47,7 @@ module.exports = function () {
           assert(event.contact.id, 'Missing id')
           assert(event.contact.email, 'Missing email address')
           assert(contacts.byEmail[event.contact.email], 'Unknown contact')
+          unifyAssistsFields(event.contact)
           contacts.byEmail[event.contact.email].id = event.contact.id
           contacts.byId[event.contact.id] = contacts.byEmail[event.contact.email]
           removeRequest(r => r.type === 'create-contact' && r.contact.email === event.contact.email)

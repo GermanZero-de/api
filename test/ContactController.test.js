@@ -37,13 +37,20 @@ describe('ContactController', () => {
   let controller
   let store
   let models
+  let lastRegisteredContact
 
   beforeEach(() => {
     logger.reset()
+    lastRegisteredContact = null
     fs.writeFileSync(path.resolve(__dirname, 'events-0.json'), '')
     store = new EventStore({basePath: __dirname, logger})
     models = ModelsFactory({store, config})
     controller = require('../src/controller/ContactController')(store, models, adapters, mailSender, config)
+    store.listen((event) => {
+      if (event.type === 'contact-requested') {
+        lastRegisteredContact = event.contact
+      }
+    })
   })
 
   function assertFieldIsValid(field, func) {
@@ -71,6 +78,38 @@ describe('ContactController', () => {
     mapper.getKnownTitles().forEach(title => {
       it(`should accept '${title}' as title`, async () => {
         await controller.registerAsVolunteer({...testContact, title})
+      })
+    })
+
+    it('should map assist values with long key names to tags', async () => {
+      await controller.registerAsVolunteer({...testContact, assists_finanzstark: 'finanzstark', assists_finanzkräftig: 'tatkräftig'})
+      setImmediate(() => {
+        lastRegisteredContact.should.have.property('tags')
+        lastRegisteredContact.tags.should.containDeep(['finanzstark', 'tatkräftig'])
+      })
+    })
+
+    it('should handle assists values as array correctly', async () => {
+      await controller.registerAsVolunteer({...testContact, assists: ['finanzstark', 'tatkräftig']})
+      setImmediate(() => {
+        lastRegisteredContact.should.have.property('tags')
+        lastRegisteredContact.tags.should.containDeep(['finanzstark', 'tatkräftig'])
+      })
+    })
+    
+    it('should handle sphere values as single values correctly', async () => {
+      await controller.registerAsVolunteer({...testContact, sphere: 'it'})
+      setImmediate(() => {
+        lastRegisteredContact.should.have.property('tags')
+        lastRegisteredContact.tags.should.containDeep(['it'])
+      })
+    })
+
+    it('should handle sphere values as array correctly', async () => {
+      await controller.registerAsVolunteer({...testContact, sphere: ['it', 'accounting']})
+      setImmediate(() => {
+        lastRegisteredContact.should.have.property('tags')
+        lastRegisteredContact.tags.should.containDeep(['it', 'accounting'])
       })
     })
   })

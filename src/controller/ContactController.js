@@ -44,6 +44,15 @@ module.exports = (store, models, adapters, MailSender, config) => {
       if (contact.newsletter) {
         contact.tags.push('Newsletter')
       }
+      Object.keys(contact)
+        .filter(key => key.match(/^(assists|sphere)/))
+        .forEach(key => {
+          if (contact[key] instanceof Array) {
+            contact.tags.push(...contact[key].map(t => t.toLowerCase()))
+          } else {
+            contact.tags.push(contact[key].toLowerCase())
+          }
+        })
       store.add({type: 'contact-requested', contact})
       return {httpStatus: 202}
     },
