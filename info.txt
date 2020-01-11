@@ -1,5 +1,5 @@
-commit 488897e116d325bd1ae785e7eb485e4a0f24670b
+commit 86d527828ceb44d116cdab8e825bef63b63e0bea
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Fri Jan 10 18:37:37 2020 +0100
+Date:   Sat Jan 11 08:45:15 2020 +0100
 
-    Added missing link to YouTube
+    Log error stacksonly if they exist

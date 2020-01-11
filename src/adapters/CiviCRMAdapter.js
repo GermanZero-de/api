@@ -50,25 +50,22 @@ module.exports = (fetch, config) => {
       if (!data.id) {
         fields.contact.contact_type = 'Individual'
       }
-      const contact = await fetchFromCRM('contact', 'create', fields.contact)
+      const {id} = await fetchFromCRM('contact', 'create', fields.contact)
+      const contact = await this.getSingleContact({id})
       if (Object.values(fields.address).some(property => property)) {
         if (data.raw) {
           fields.address.id = data.raw.address_id
         }
-        await fetchFromCRM('address', 'create', {contact_id: contact.id, location_type: 'Home', ...fields.address})
+        await fetchFromCRM('address', 'create', {contact_id: id, location_type: 'Home', ...fields.address})
       }
       if (fields.websites) {
-        await Promise.all(fields.websites.map(website => fetchFromCRM('website', 'create', {contact_id: contact.id, ...website})))
+        await Promise.all(fields.websites.map(website => fetchFromCRM('website', 'create', {contact_id: id, ...website})))
       }
       if (data.tags) {
-        const newTags = data.tags.filter(tag => !data.raw || !data.raw.tags || !data.raw.tags.includes(tag))
-        await Promise.all(newTags.map(tag => fetchFromCRM('EntityTag', 'create', {entity_id: contact.id, entity_table: 'civicrm_contact', tag_id: tag})))
+        const newTags = data.tags.filter(tag => !contact.tags || !contact.tags.includes(tag))
+        await Promise.all(newTags.map(tag => fetchFromCRM('EntityTag', 'create', {entity_id: id, entity_table: 'civicrm_contact', tag_id: tag})))
       }
-      const result = await fetchFromCRM('contact', 'get', {id: contact.id, return: fieldList, sequential: true})
-      if (result.is_error || !result.values || Object.keys(result.values).length === 0) {
-        return undefined
-      }
-      return this.getSingleContact({id: contact.id})
+      return this.getSingleContact({id})
     },
 
     async updateContact(id, change) {

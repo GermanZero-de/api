@@ -8,7 +8,23 @@ const CRM = require('./adapters/CiviCRMAdapter')(fetch, config)
 
 const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), logger})
 
-;(async function () {
+function collectTags(contact) {
+  if (!contact.tags) {
+    contact.tags = []
+  }
+  Object.keys(contact)
+  .filter(key => key.match(/^(assists|sphere)/))
+  .forEach(key => {
+    if (contact[key] instanceof Array) {
+      contact.tags.push(...contact[key].map(t => t.toLowerCase()))
+    } else {
+      contact.tags.push(contact[key].toLowerCase())
+    }
+  })
+  return contact
+}
+
+(async function () {
   store.listen(listener)
   const allContacts = await CRM.getAllContacts()
   const contactsByEMail = Object.assign({}, ...allContacts.map(contact => ({[contact.email]: contact})))
@@ -25,7 +41,7 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
   function addToQueue(func) {
     queued++
     const task = async function () {
-      logger.info(`Working on ${current} of ${queued}`)
+      logger.info(`Working on ${++current} of ${queued}`)
       await func()
       queue.running = queue.pending.shift()
       if (queue.running) {
@@ -47,6 +63,8 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
       if (event[key] instanceof Array) {
         return event[key].length !== contact[key].length ||
           event[key].filter(x => contact[key].includes(x)).length !== event[key].length
+      } else if (key === 'email') {
+        return event[key].toLowerCase() !== contact[key].toLowerCase()
       }
       return event[key] !== contact[key]
     }
@@ -100,6 +118,7 @@ const store = new EventStore({basePath: path.resolve(__dirname, '..', 'store'), 
   async function listener(event) {
     switch(event.type) {
       case 'contact-requested':
+        collectTags(event.contact)
         addToQueue(() => upsertContact(event.contact))
         break
         
