@@ -109,7 +109,9 @@ class EventStore {
           })
         } catch (error) {
           self.logger.error(error)
-          self.logger.debug(error.stack)
+          if (error.stack) {
+            self.logger.debug(error.stack)
+          }
         }
       }))
   }
