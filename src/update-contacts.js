@@ -20,6 +20,7 @@ function collectTags(contact) {
     } else {
       contact.tags.push(contact[key].toLowerCase())
     }
+    delete contact[key]
   })
   return contact
 }

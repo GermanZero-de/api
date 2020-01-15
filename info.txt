@@ -1,5 +1,5 @@
-commit 2c0a180051d395e80bee33754614c42c4598f419
+commit 8f6e55da6537c5f61f135230daf8ea5323a2133c
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Wed Jan 15 18:25:35 2020 +0100
+Date:   Wed Jan 15 18:26:02 2020 +0100
 
-    ignore 'known' errors when assigning tags for now
+    Improved error logging

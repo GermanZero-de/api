@@ -17,6 +17,7 @@ module.exports = function () {
       } else {
         contact.tags.push(contact[key].toLowerCase())
       }
+      delete contact[key]
     })
     return contact
   }
