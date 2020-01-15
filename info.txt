@@ -1,5 +1,5 @@
-commit 8f6e55da6537c5f61f135230daf8ea5323a2133c
+commit ca1ffc95b0181e5fa891eb0593984f0a981f8be3
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Wed Jan 15 18:26:02 2020 +0100
+Date:   Wed Jan 15 18:26:32 2020 +0100
 
-    Improved error logging
+    removed already pre-processed attributes in contact entries
