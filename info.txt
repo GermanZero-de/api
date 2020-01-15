@@ -1,5 +1,5 @@
-commit 448a8a8514ca496a99b0c95acb2a1dabd52cd5b9
+commit 2c0a180051d395e80bee33754614c42c4598f419
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Sat Jan 11 18:10:07 2020 +0100
+Date:   Wed Jan 15 18:25:35 2020 +0100
 
-    Handle assists and sphere fields as tags
+    ignore 'known' errors when assigning tags for now

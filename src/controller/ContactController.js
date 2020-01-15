@@ -97,7 +97,7 @@ module.exports = (store, models, adapters, MailSender, config) => {
         await MailSender.send(model.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', {unsubscribe, contact})
         store.add({type: 'confirmation-completed', contactId})
       } catch (error) {
-        return {httpStatus: 500, message: '' + error, stack: error.stack}
+        return {httpStatus: error.status || 500, message: error.detail || ('' + error), stack: error.stack}
       }
     },
 
