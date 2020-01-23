@@ -1,5 +1,5 @@
-commit ca1ffc95b0181e5fa891eb0593984f0a981f8be3
+commit 46cf1499435b5ed74388c2accaa2cbb43aa17448
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Wed Jan 15 18:26:32 2020 +0100
+Date:   Wed Jan 15 18:41:55 2020 +0100
 
-    removed already pre-processed attributes in contact entries
+    Ignore more 'known' errors on tag assigns

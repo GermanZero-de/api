@@ -26,12 +26,11 @@ module.exports = (fetch, config) => {
     }
     const data = result.headers.get('content-type').match(/json/) ? await result.json() : await result.text()
     if (data.is_error) {
-      console.error(data)
       if (data.error_field === 'tag_id' || data.error_message === 'Unable to add tags') {
         // ignore 'known' errors for now - @todo find out why 'tätkräftig' tags don't work. Maybe because of Umlaut?
         return data
       }
-      throw Error('CiviCRM returned an error')
+      throw {message: 'CiviCRM returned an error: ' + data.error_message}
     }
     return data
   }
