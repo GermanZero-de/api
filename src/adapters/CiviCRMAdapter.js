@@ -30,7 +30,7 @@ module.exports = (fetch, config) => {
         // ignore 'known' errors for now - @todo find out why 'tätkräftig' tags don't work. Maybe because of Umlaut?
         return data
       }
-      throw {message: 'CiviCRM returned an error: ' + data.error_message}
+      throw Error('CiviCRM returned an error: ' + data.error_message)
     }
     return data
   }

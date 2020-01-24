@@ -1,5 +1,5 @@
-commit 46cf1499435b5ed74388c2accaa2cbb43aa17448
+commit c3d7d76b516729778a0dd398070f3e8e5f352f67
 Author: Joachim Schirrmacher <joachim.schirrmacher@gmail.com>
-Date:   Wed Jan 15 18:41:55 2020 +0100
+Date:   Thu Jan 23 19:18:40 2020 +0100
 
-    Ignore more 'known' errors on tag assigns
+    Improved logging in case of errors when accessing CiviCRM
