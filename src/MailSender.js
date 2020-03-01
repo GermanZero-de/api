@@ -10,7 +10,7 @@ module.exports = (logger, config) => {
   const transporter = nodemailer.createTransport({
     host: config.mail.smtpHost,
     port: config.mail.smtpPort,
-    secure: true,
+    secure: config.mail.secure,
     auth: {
       user: config.mail.user,
       pass: config.mail.pwd,

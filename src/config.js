@@ -17,6 +17,7 @@ const config = {
   mail: {
     smtpHost: process.env.SMTP_HOST,
     smtpPort: process.env.SMTP_PORT,
+    secure: (process.env.SMTP_SECURE || 'true') === 'true',
     user: process.env.SMTP_USER,
     pwd: process.env.SMTP_PWD,
     from: process.env.MAIL_FROM,
