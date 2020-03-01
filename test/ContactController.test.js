@@ -10,14 +10,18 @@ const ModelsFactory = require('../src/readModels')
 
 const jsonContentType = 'application/json'
 
-function okResult(data) {
+let civiError = false
+function fetchResult(data) {
   const headers = {
     get: which => which === 'content-type' ? jsonContentType : undefined
+  }
+  if (civiError) {
+    return {ok: true, status: 200, headers, json: () => ({is_error: true, error_message: 'This is the expected CiviCRM message'})}
   }
   return {ok: true, status: 200, headers, json: () => data}
 }
 const fetch = require('./MockFetch')(logger, {
-  'POST https://civicrm/sites/all/modules/civicrm/extern/rest.php': okResult({values: [{}]})
+  'POST https://civicrm/sites/all/modules/civicrm/extern/rest.php': () => fetchResult({values: [{}]})
 })
 const mailSender = require('./MockMailSender')(logger)
 const adapters = require('../src/adapters')(fetch, config)
@@ -111,6 +115,16 @@ describe('ContactController', () => {
         lastRegisteredContact.should.have.property('tags')
         lastRegisteredContact.tags.should.containDeep(['it', 'accounting'])
       })
+    })
+  })
+
+  describe('doConfirmRegistration', () => {
+    afterEach(() => civiError = false)
+
+    it('should report CiviCRM errors as such', async () => {
+      civiError = true
+      const result = await controller.doConfirmRegistration(4711)
+      result.should.containDeep({httpStatus: 500, message: 'CiviCRM said: Error: CiviCRM returned an error: This is the expected CiviCRM message'})
     })
   })
 

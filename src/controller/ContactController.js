@@ -85,19 +85,30 @@ module.exports = (store, models, adapters, MailSender, config) => {
     },
 
     async doConfirmRegistration(contactId) {
+      async function tryCatch(name, func) {
+        try {
+          return await func()
+        } catch(error) {
+          throw {httpStatus: error.status || 500, message: name + ' said: ' + (error.detail || ('' + error)), stack: error.stack}  
+        }
+      }
+
       try {
         const contact = models.contacts.getById(contactId)
-        await adapters.CiviCRMAdapter.updateContact(+contactId, {is_opt_out: '0'})
-        await adapters.MailChimpAdapter.addSubscriber(contact)
-        if (contact.tags) {
-          await adapters.MailChimpAdapter.addTags(contact, contact.tags)
-        }
-        const model = models.contacts.getById(contactId)
-        const unsubscribe = config.apiUrl + `/contacts/${contact.id}/unsubscribe/${encrypt('' + model.id)}`
-        await MailSender.send(model.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', {unsubscribe, contact})
-        store.add({type: 'confirmation-completed', contactId})
+        await tryCatch('CiviCRM', async () => adapters.CiviCRMAdapter.updateContact(+contactId, {is_opt_out: '0'}))
+        await tryCatch('MailChimp', async () => {
+          await adapters.MailChimpAdapter.addSubscriber(contact)
+          if (contact.tags) {
+            await adapters.MailChimpAdapter.addTags(contact, contact.tags)
+          }
+        })
+        await tryCatch('MailSender', async () => {
+          const unsubscribe = config.apiUrl + `/contacts/${contact.id}/unsubscribe/${encrypt('' + contact.id)}`
+          await MailSender.send(contact.email, 'GermanZero: E-Mail Adresse ist bestätigt', 'welcomeMail', {unsubscribe, contact})
+          store.add({type: 'confirmation-completed', contactId})
+        })
       } catch (error) {
-        return {httpStatus: error.status || 500, message: error.detail || ('' + error), stack: error.stack}
+        return error
       }
     },
 

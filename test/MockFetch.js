@@ -3,6 +3,11 @@ module.exports = (logger, expectedFetchResults) => {
     logger.debug({fetch: {url, options}})
     const path = (options.method || 'GET').toUpperCase() + ' ' + url
     const found = Object.keys(expectedFetchResults).find(pattern => path.match(new RegExp(pattern)))
-    return expectedFetchResults[found] || { status: 404, headers: {get: () => ''} }
+    if (!found) {
+      return { status: 404, headers: {get: () => ''} }
+    } else if (expectedFetchResults[found] instanceof Function) {
+      return expectedFetchResults[found](url, options)
+    }
+    return expectedFetchResults[found]
   } 
 }
